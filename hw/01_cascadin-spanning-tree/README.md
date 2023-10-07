@@ -2,7 +2,7 @@
 
 In the following definitions we suppose that G = (V, E) is an unempty undirected connected graph. V is the set of its vertices and E is the set of its edges. Let v, w be two vertices of G. We define the **distance between v and w** as the length of the shortest path between v and w and denote it by the symbol dist(v, w). (The length of a path is equal to the number of edges in the path.) For a nonnegative integer r we denote by symbol D(v, r) the set of all such vertices of V which distance from v is equal to r.
 
-et H be a subgraph of G and let W be the set of all vertices of H. We say that H is **induced by set W** if, for any pair of vertices v, w ∈ W, {v, w} is an edge of H if and only if {v, w} is an edge of G. We denote by symbol INDU(G,W) the subgraph of G induced by set W. Note that graph INDU(G,W) is defined unambiguously.
+Let H be a subgraph of G and let W be the set of all vertices of H. We say that H is **induced by set W** if, for any pair of vertices v, w ∈ W, {v, w} is an edge of H if and only if {v, w} is an edge of G. We denote by symbol INDU(G,W) the subgraph of G induced by set W. Note that graph INDU(G,W) is defined unambiguously.
 
 Let x be a vertex of G. We say that two vertices v, w ∈ V are **x-distance binded** if dist(x, v) = dist(x, w) and moreover v and w belong to the same connected component of the graph INDU(G, D(x, dist(x, v))).
 
@@ -21,7 +21,7 @@ We say that spanning tree T of G is **cascading** if there exists vertex x ∈ V
 ## The task
 We are given an undirected integer-weighted graph G = (V, E, φ), φ: E → ℤ. We have to find the weight of minimum cascading spanning tree of G. The weight of a tree is a sum of weights of all its edges.
 
-###s Input
+### Input
 The first line of input contains two positive integers N, M separated by space. N represents the order of the graph (number of vertices) and M represents the size of the graph (number of edges). We suppose that graph vertices are labeled 1, 2, 3, ..., N. Next, there are M lines of input, each line specifies one edge. The edge specification consists of three integer values separated by spaces. The first two values represent the labels of the end vertices of the edge, the third value represents the weight of the edge. Note that edge weights might be negative. The edges and its end vertices are given in no specific order.
 
 It holds, 2 ≤ N ≤ 500, N−1 ≤ M ≤ 10000. The absolute value of any edge weight does not exceed 10.
