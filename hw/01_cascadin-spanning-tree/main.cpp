@@ -21,11 +21,11 @@ int main(int argc, char const *argv[])
    if (scanf("%d %d\n", &number_vertices, &number_edges) != 2)
       fprintf(stderr, "Can not load data\n");
 
-   // create array for pririty queues
+   // Create array for pririty queues
    priority_queue<Edge, vector<Edge>, CompareEdge> *data =
        new priority_queue<Edge, vector<Edge>, CompareEdge>[number_vertices];
 
-   // load edges data
+   // Load edges data
    for (int i = 0; i < number_edges; ++i) {
       int vertex, target, value;
       if (scanf("%d %d %d\n", &vertex, &target, &value) != 3)
@@ -35,7 +35,10 @@ int main(int argc, char const *argv[])
       data[target - 1].push(Edge(vertex - 1, value - 1));
    }
 
-   // calcucle minimal cascading
+   // Calcucle minimal cascading spannig tree
+   // 1. trought all vertexes
+   // 2. find minimal spannig tree for cascading area
+   // 3. find minimal cost of edge between cascading area
 
    // free space
    delete[] data;
