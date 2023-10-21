@@ -26,6 +26,8 @@ struct Edge_Raw {
 
 struct Vertex {
    bool is_used = false;
+   int depth;
+   bool visited; // for BFS - detect depth from root vertex
 };
 
 int added_vertices;
@@ -61,6 +63,11 @@ void addNeighbours(int i, P_Q *neigbours, vector<Edge_Raw> *edges)
    }
 }
 
+void calculateDepth(int root_id, Vertex *v, vector<Edge_Raw> *d)
+{
+   cout << "Hello " << root_id << endl;
+}
+
 int main(int argc, char const *argv[])
 {
    // LOAD DATA
@@ -78,11 +85,11 @@ int main(int argc, char const *argv[])
          fprintf(stderr, "Can not load data\n");
       Edge_Raw tmp;
       tmp.is_used = false;
-      tmp.target = target;
+      tmp.target = target - 1;
       tmp.value = value;
       data[vertex - 1].push_back(tmp);
       // save symtricity
-      tmp.target = vertex;
+      tmp.target = vertex - 1;
       data[target - 1].push_back(tmp);
    }
 
@@ -113,11 +120,14 @@ int main(int argc, char const *argv[])
       // Add neighbours
       addNeighbours(i, neigbours, data);
 
+      // Calcule depth
+      calculateDepth(i, vertices, data);
+
       while (added_vertices != number_vertices) {
          if (neigbours->top().value == 9)
             return 0;
 
-         int vertext_id = neigbours->top().target - 1;
+         int vertext_id = neigbours->top().target;
          if (!vertices[vertext_id].is_used) {
 
             markVertex(vertext_id, vertices);
@@ -133,9 +143,6 @@ int main(int argc, char const *argv[])
       }
       if (global_min_weight > local_min_weight)
          global_min_weight = local_min_weight;
-      cout << i + 1 << ". RUN REPORT | global: " << global_min_weight
-           << " local: " << local_min_weight << endl
-           << endl;
 
       delete neigbours;
       delete vertices;
@@ -149,5 +156,6 @@ int main(int argc, char const *argv[])
    }
    // free space
    delete[] data;
+   printf("%d\n", global_min_weight);
    return 0;
 }
