@@ -1,6 +1,9 @@
+#include <cstring>
 #include <queue>
 #include <stdio.h>
 using namespace std;
+
+#define P_Q priority_queue<Edge, vector<Edge>, CompareEdge>
 
 struct Edge {
    int target;
@@ -14,6 +17,26 @@ struct CompareEdge {
    }
 };
 
+struct Vertex {
+   bool is_used = false;
+};
+
+int added_vertices;
+int global_min_weight; // the weight of minimum cascading spanning tree
+
+void markVertex(int i, Vertex *v)
+{
+   v[i].is_used = true;
+   added_vertices++;
+}
+
+void addNeighbours(int i, P_Q *neigbours, P_Q *edges)
+{
+   // is edge added into the P_Q?
+
+   // if not add it
+}
+
 int main(int argc, char const *argv[])
 {
    // LOAD DATA
@@ -22,8 +45,7 @@ int main(int argc, char const *argv[])
       fprintf(stderr, "Can not load data\n");
 
    // Create array for pririty queues
-   priority_queue<Edge, vector<Edge>, CompareEdge> *data =
-       new priority_queue<Edge, vector<Edge>, CompareEdge>[number_vertices];
+   P_Q *data = new P_Q[number_vertices];
 
    // Load edges data
    for (int i = 0; i < number_edges; ++i) {
@@ -36,10 +58,29 @@ int main(int argc, char const *argv[])
    }
 
    // Calcucle minimal cascading spannig tree
-   // 1. trought all vertexes
-   // 2. find minimal spannig tree for cascading area
-   // 3. find minimal cost of edge between cascading area
+   // 1. trought all vertices
+   for (int i = 0; i < number_vertices; ++i) {
+      // allocated memory for vertex
+      Vertex *vertices = new Vertex[number_vertices];
+      P_Q *neigbours = new P_Q;
 
+      // Add starting vertex
+      markVertex(i, vertices);
+      added_vertices = 0;
+      global_min_weight = 0;
+
+      // Add neighbours
+      addNeighbours(i, neigbours, data);
+
+      while (added_vertices != number_vertices) {
+         // 2. find minimum edge
+         // mark vertex as used
+         vertices[i].is_used = true;
+         // get cheaper edge cost
+         // int cheapest_edge;
+      }
+      delete neigbours;
+   }
    // free space
    delete[] data;
    return 0;
