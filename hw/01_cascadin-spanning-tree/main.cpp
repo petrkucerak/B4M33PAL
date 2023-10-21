@@ -2,6 +2,7 @@
 #include <iostream>
 #include <queue>
 #include <stdio.h>
+#include <limits>
 using namespace std;
 
 // #define DEBUG_PRINT
@@ -27,7 +28,7 @@ struct BFS_Vertex {
 struct Edge_Raw {
    int target;
    int64_t value;
-   bool is_used;
+   // bool is_used;
 };
 
 struct Vertex {
@@ -56,15 +57,14 @@ void printNeigbours(P_Q *n)
    printf("\n");
 }
 
-void addNeighbours(int i, P_Q *neigbours, vector<Edge_Raw> *edges)
+void addNeighbours(int i, P_Q *neigbours, vector<Edge_Raw> *edges,
+                   Vertex *vertecies)
 {
    for (long unsigned int j = 0; j < edges[i].size(); ++j) {
       // is edge added into the P_Q?
-      if (!edges[i][j].is_used) {
+      if (!vertecies[edges[i][j].target].is_used) {
          // added it
          neigbours->push(Edge(edges[i][j].target, edges[i][j].value));
-         // mark edge as done
-         edges[i][j].is_used = true;
       }
    }
 }
@@ -129,7 +129,7 @@ int main(int argc, char const *argv[])
       if (scanf("%d %d %d\n", &vertex, &target, &value) != 3)
          fprintf(stderr, "Can not load data\n");
       Edge_Raw tmp;
-      tmp.is_used = false;
+      // tmp.is_used = false;
       tmp.target = target - 1;
       tmp.value = value;
       data[vertex - 1].push_back(tmp);
@@ -151,7 +151,7 @@ int main(int argc, char const *argv[])
 
    // Calcucle minimal cascading spannig tree
    // 1. trought all vertices
-   global_min_weight = INT32_MAX;
+   global_min_weight = INT64_MAX;
    for (int i = 0; i < number_vertices; ++i) {
       // allocated memory for vertex
       Vertex *vertices = new Vertex[number_vertices];
@@ -164,7 +164,7 @@ int main(int argc, char const *argv[])
       local_min_weight = 0;
 
       // Add neighbours
-      addNeighbours(i, neigbours, data);
+      addNeighbours(i, neigbours, data, vertices);
 
 #ifdef DEBUG_PRINT
       cout << "Root ID: " << i << endl;
@@ -184,7 +184,7 @@ int main(int argc, char const *argv[])
 
             neigbours->pop();
 
-            addNeighbours(vertext_id, neigbours, data);
+            addNeighbours(vertext_id, neigbours, data, vertices);
 
             // calcule cacading area
             addCascadingNeighbours(vertext_id, cascading_neighbours, data,
@@ -202,7 +202,7 @@ int main(int argc, char const *argv[])
 
                   addCascadingNeighbours(vertext_id, cascading_neighbours, data,
                                          vertices);
-                  addNeighbours(vertext_id, neigbours, data);
+                  addNeighbours(vertext_id, neigbours, data, vertices);
                } else {
                   cascading_neighbours->pop();
                }
@@ -222,14 +222,8 @@ int main(int argc, char const *argv[])
 #ifdef DEBUG_PRINT
       cout << "local min: " << local_min_weight << endl << endl;
 #endif
-
-      // clean verticies as not used
-      for (int i = 0; i < number_vertices; ++i) {
-         for (long unsigned int j = 0; j < data[i].size(); ++j) {
-            data[i][j].is_used = false;
-         }
-      }
    }
+
    // free space
    delete[] data;
    printf("%ld\n", global_min_weight);
