@@ -18,6 +18,11 @@ struct CompareEdge {
    }
 };
 
+struct BFS_Vertex {
+   int no;
+   int depth;
+};
+
 struct Edge_Raw {
    int target;
    int value;
@@ -26,8 +31,8 @@ struct Edge_Raw {
 
 struct Vertex {
    bool is_used = false;
-   int depth;
-   bool visited; // for BFS - detect depth from root vertex
+   int depth = 0;
+   bool visited = false; // for BFS - detect depth from root vertex
 };
 
 int added_vertices;
@@ -63,9 +68,36 @@ void addNeighbours(int i, P_Q *neigbours, vector<Edge_Raw> *edges)
    }
 }
 
-void calculateDepth(int root_id, Vertex *v, vector<Edge_Raw> *d)
+void addNeighboursBFS(int i, queue<BFS_Vertex> *q, vector<Edge_Raw> *d,
+                      int depth)
 {
-   cout << "Hello " << root_id << endl;
+   for (long unsigned int j = 0; j < d[i].size(); ++j) {
+      BFS_Vertex e;
+      e.depth = depth;
+      e.no = d[i][j].target;
+      q->push(e);
+   }
+}
+
+void calculateDepth(int root_id, Vertex *v, vector<Edge_Raw> *d,
+                    int number_vertices)
+{
+   queue<BFS_Vertex> *q = new queue<BFS_Vertex>;
+   v[root_id].depth = 0;
+   v[root_id].visited = true;
+   addNeighboursBFS(root_id, q, d, 0);
+   int i = 0;
+   while (!q->empty() && number_vertices > i) {
+      int el = q->front().no;
+      if (!v[el].visited) {
+         v[el].depth = q->front().depth + 1;
+         v[el].visited = true;
+         addNeighboursBFS(el, q, d, v[el].depth);
+         ++i;
+      }
+      q->pop();
+   }
+   delete q;
 }
 
 int main(int argc, char const *argv[])
@@ -121,7 +153,7 @@ int main(int argc, char const *argv[])
       addNeighbours(i, neigbours, data);
 
       // Calcule depth
-      calculateDepth(i, vertices, data);
+      calculateDepth(i, vertices, data, number_vertices);
 
       while (added_vertices != number_vertices) {
          if (neigbours->top().value == 9)
