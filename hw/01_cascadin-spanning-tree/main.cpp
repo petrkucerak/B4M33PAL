@@ -4,12 +4,13 @@
 #include <stdio.h>
 using namespace std;
 
+// #define DEBUG_PRINT
 #define P_Q priority_queue<Edge, vector<Edge>, CompareEdge>
 
 struct Edge {
    int target;
-   int value;
-   Edge(int target, int value) : target(target), value(value) {}
+   int64_t value;
+   Edge(int target, int64_t value) : target(target), value(value) {}
 };
 struct CompareEdge {
    bool operator()(Edge const &e1, Edge const &e2)
@@ -25,7 +26,7 @@ struct BFS_Vertex {
 
 struct Edge_Raw {
    int target;
-   int value;
+   int64_t value;
    bool is_used;
 };
 
@@ -36,8 +37,8 @@ struct Vertex {
 };
 
 int added_vertices;
-int global_min_weight; // the weight of minimum cascading spanning tree
-int local_min_weight;
+int64_t global_min_weight; // the weight of minimum cascading spanning tree
+int64_t local_min_weight;
 
 void markVertex(int i, Vertex *v)
 {
@@ -49,7 +50,7 @@ void printNeigbours(P_Q *n)
 {
    printf("PRINTING NEIGHBOUR LIST\n");
    while (!n->empty()) {
-      printf("%d ", n->top().value);
+      printf("%ld ", n->top().value);
       n->pop();
    }
    printf("\n");
@@ -64,6 +65,18 @@ void addNeighbours(int i, P_Q *neigbours, vector<Edge_Raw> *edges)
          neigbours->push(Edge(edges[i][j].target, edges[i][j].value));
          // mark edge as done
          edges[i][j].is_used = true;
+      }
+   }
+}
+void addCascadingNeighbours(int i, P_Q *cascading_neigbours,
+                            vector<Edge_Raw> *edges, Vertex *vertecies)
+{
+   for (long unsigned int j = 0; j < edges[i].size(); ++j) {
+      // is edge added into the P_Q?
+      if (!vertecies[edges[i][j].target].is_used &&
+          vertecies[i].depth == vertecies[edges[i][j].target].depth) {
+         // added it
+         cascading_neigbours->push(Edge(edges[i][j].target, edges[i][j].value));
       }
    }
 }
@@ -143,6 +156,7 @@ int main(int argc, char const *argv[])
       // allocated memory for vertex
       Vertex *vertices = new Vertex[number_vertices];
       P_Q *neigbours = new P_Q;
+      P_Q *cascading_neighbours = new P_Q;
 
       // Add starting vertex
       markVertex(i, vertices);
@@ -152,16 +166,18 @@ int main(int argc, char const *argv[])
       // Add neighbours
       addNeighbours(i, neigbours, data);
 
+#ifdef DEBUG_PRINT
+      cout << "Root ID: " << i << endl;
+#endif
       // Calcule depth
       calculateDepth(i, vertices, data, number_vertices);
 
       while (added_vertices != number_vertices) {
-         if (neigbours->top().value == 9)
-            return 0;
-
          int vertext_id = neigbours->top().target;
          if (!vertices[vertext_id].is_used) {
-
+#ifdef DEBUG_PRINT
+            printf("N: %d(%ld)\n", vertext_id, neigbours->top().value);
+#endif
             markVertex(vertext_id, vertices);
 
             local_min_weight += neigbours->top().value;
@@ -169,6 +185,29 @@ int main(int argc, char const *argv[])
             neigbours->pop();
 
             addNeighbours(vertext_id, neigbours, data);
+
+            // calcule cacading area
+            addCascadingNeighbours(vertext_id, cascading_neighbours, data,
+                                   vertices);
+            while (!cascading_neighbours->empty()) {
+               vertext_id = cascading_neighbours->top().target;
+               if (!vertices[vertext_id].is_used) {
+#ifdef DEBUG_PRINT
+                  printf("C: %d(%ld)\n", vertext_id,
+                         cascading_neighbours->top().value);
+#endif
+                  markVertex(vertext_id, vertices);
+                  local_min_weight += cascading_neighbours->top().value;
+                  cascading_neighbours->pop();
+
+                  addCascadingNeighbours(vertext_id, cascading_neighbours, data,
+                                         vertices);
+                  addNeighbours(vertext_id, neigbours, data);
+               } else {
+                  cascading_neighbours->pop();
+               }
+            }
+
          } else {
             neigbours->pop();
          }
@@ -176,8 +215,13 @@ int main(int argc, char const *argv[])
       if (global_min_weight > local_min_weight)
          global_min_weight = local_min_weight;
 
+      delete cascading_neighbours;
       delete neigbours;
       delete vertices;
+
+#ifdef DEBUG_PRINT
+      cout << "local min: " << local_min_weight << endl << endl;
+#endif
 
       // clean verticies as not used
       for (int i = 0; i < number_vertices; ++i) {
@@ -188,6 +232,6 @@ int main(int argc, char const *argv[])
    }
    // free space
    delete[] data;
-   printf("%d\n", global_min_weight);
+   printf("%ld\n", global_min_weight);
    return 0;
 }
