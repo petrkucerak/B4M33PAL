@@ -1,8 +1,8 @@
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <queue>
 #include <stdio.h>
-#include <limits>
 using namespace std;
 
 // #define DEBUG_PRINT
@@ -138,17 +138,6 @@ int main(int argc, char const *argv[])
       data[target - 1].push_back(tmp);
    }
 
-   // Print loaded data
-   {
-      // for (int i = 0; i < number_vertices; ++i) {
-      //    printf("%d: ", i+1);
-      //    for (int j = 0; j < data[i].size(); ++j) {
-      //       printf("%d(%d) ", data[i][j].value, data[i][j].target);
-      //    }
-      //    printf("\n");
-      // }
-   }
-
    // Calcucle minimal cascading spannig tree
    // 1. trought all vertices
    global_min_weight = INT64_MAX;
@@ -211,13 +200,16 @@ int main(int argc, char const *argv[])
          } else {
             neigbours->pop();
          }
+         // this cutting works only for positive numbers
+         // if (local_min_weight > global_min_weight)
+         //    break;
       }
       if (global_min_weight > local_min_weight)
          global_min_weight = local_min_weight;
 
       delete cascading_neighbours;
       delete neigbours;
-      delete vertices;
+      delete[] vertices;
 
 #ifdef DEBUG_PRINT
       cout << "local min: " << local_min_weight << endl << endl;
