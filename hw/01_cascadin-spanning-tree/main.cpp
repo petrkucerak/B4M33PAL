@@ -62,7 +62,8 @@ void addNeighbours(int i, P_Q *neigbours, vector<Edge_Raw> *edges,
 {
    for (long unsigned int j = 0; j < edges[i].size(); ++j) {
       // is edge added into the P_Q?
-      if (!vertecies[edges[i][j].target].is_used) {
+      if (!vertecies[edges[i][j].target].is_used &&
+          vertecies[i].depth + 1 == vertecies[edges[i][j].target].depth) {
          // added it
          neigbours->push(Edge(edges[i][j].target, edges[i][j].value));
       }
@@ -152,14 +153,15 @@ int main(int argc, char const *argv[])
       added_vertices = 1;
       local_min_weight = 0;
 
+      // Calcule depth
+      calculateDepth(i, vertices, data, number_vertices);
+
       // Add neighbours
       addNeighbours(i, neigbours, data, vertices);
 
 #ifdef DEBUG_PRINT
       cout << "Root ID: " << i << endl;
 #endif
-      // Calcule depth
-      calculateDepth(i, vertices, data, number_vertices);
 
       while (added_vertices != number_vertices) {
          int vertext_id = neigbours->top().target;
@@ -200,9 +202,6 @@ int main(int argc, char const *argv[])
          } else {
             neigbours->pop();
          }
-         // this cutting works only for positive numbers
-         // if (local_min_weight > global_min_weight)
-         //    break;
       }
       if (global_min_weight > local_min_weight)
          global_min_weight = local_min_weight;
