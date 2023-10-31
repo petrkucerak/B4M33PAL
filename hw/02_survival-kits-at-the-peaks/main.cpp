@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <vector>
 
+#define PRINT_LOADED_DATA
+
 int main(int argc, char const *argv[])
 {
    // Load metadata
@@ -24,6 +26,7 @@ int main(int argc, char const *argv[])
       data[node].push_back(target); // TODO: make it effective
    }
 
+#ifdef PRINT_LOADED_DATA
    for (auto i = 0; i < points_count; ++i) {
       printf("%4d | ", i);
       for (auto j = 0; j < data[i].size(); ++j) {
@@ -31,6 +34,7 @@ int main(int argc, char const *argv[])
       }
       printf("\n");
    }
+#endif // PRINT_LOADED_DATA
 
    return 0;
 }
