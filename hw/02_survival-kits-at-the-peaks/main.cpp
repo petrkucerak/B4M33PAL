@@ -240,6 +240,6 @@ int main()
    for (auto &area : result) {
       kit_count += areas[area].points.size();
    }
-   cout << max_trip << " " << kit_count << endl;
+   printf("%d %d\n", max_trip, kit_count);
    return 0;
 }
