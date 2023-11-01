@@ -22,10 +22,17 @@ void dfs(int i, stack<int> &s, vector<vector<int>> &data, vector<int> &visited,
    visited[i] = true;
    if (print)
       cout << i << ", ";
-   for (int j = 0; j < data[i].size(); ++j) {
+   int j = 0;
+   while (j < data[i].size()) {
       int target = data[i][j];
-      if (!visited[target])
+      if (!visited[target]) {
          dfs(target, s, data, visited, print);
+         // After visiting, increment j
+         ++j;
+      } else {
+         // Skip already visited nodes
+         ++j;
+      }
    }
    if (!print)
       s.push(i);
@@ -39,10 +46,17 @@ void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
    area_points[i] = area_number;
    if (i == cp_number)
       comp.has_CP = true;
-   for (int j = 0; j < data[i].size(); ++j) {
+   int j = 0;
+   while (j < data[i].size()) {
       int target = data[i][j];
-      if (!visited[target])
+      if (!visited[target]) {
          dfs_component(target, data, visited, comp, area_number, area_points);
+         // After visiting, increment j
+         ++j;
+      } else {
+         // Skip already visited nodes
+         ++j;
+      }
    }
 }
 
@@ -128,7 +142,8 @@ int main()
       inverse_data[target].push_back(source);
    }
 
-   // get CSS
+   // Get CSS
+   // Inspiration: https://www.geeksforgeeks.org/strongly-connected-components/
    vector<int> area_points(points_count, -1);
    vector<Area> areas = find_scc(data, inverse_data, area_points);
 
