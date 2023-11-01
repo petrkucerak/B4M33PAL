@@ -101,19 +101,23 @@ void find_scc(int i, std::stack<int> &stack, std::vector<int> &lowlink,
 }
 
 void topological_sort(int i, std::vector<bool> &is_visited,
-                      std::stack<int> &stack,
-                      std::vector<std::vector<int>> &data,
-                      std::vector<Area> &area)
+                      std::stack<int> &stack, std::vector<Area> &area)
 {
    // Mark the current node as visited
    is_visited[i] = true;
+   std::cout << "N: " << i << std::endl;
 
    // Recur for all the vertices
    // adjacent to this vertex
-   // for(int j )
+   for (long unsigned int j = 0; j < area[i].targets->size(); ++j) {
+      int target = area[i].targets->at(j);
+      if (!is_visited[target])
+         topological_sort(target, is_visited, stack, area);
+   }
 
    // Push current vertex to stack
    // which stores result
+   stack.push(i);
 }
 
 int main(int argc, char const *argv[])
@@ -171,11 +175,17 @@ int main(int argc, char const *argv[])
 
    int areas_count = (int)area.size();
    // Create topological sort
-   std::vector<bool> is_visited(areas_count, false);
-   for (auto i = 0; i < areas_count; ++i) {
-      if (!is_visited[i])
-         // material: https://www.geeksforgeeks.org/topological-sorting/
-         topological_sort(i, is_visited, stack, data, area);
+   // std::vector<bool> is_visited(areas_count, false);
+   // for (auto i = 0; i < areas_count; ++i) {
+   //    if (!is_visited[i]) {
+   //       // material: https://www.geeksforgeeks.org/topological-sorting/
+   //       topological_sort(i, is_visited, stack, area);
+   //    }
+   // }
+
+   while (!stack.empty()) {
+      std::cout << stack.top() << std::endl;
+      stack.pop();
    }
 
    // remove struct
