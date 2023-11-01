@@ -16,32 +16,19 @@ struct Area {
 
 int cp_number;
 
-void traverse_parents(vector<vector<int>> &parents, int parent,
-                      set<int> &result, vector<int> &topological_mask,
-                      vector<bool> &visited)
-{
-   if (parent != -1 && !visited[parent]) {
-      for (int i = 0; i < parents[parent].size(); ++i) {
-         int new_parent = parents[parent][i];
-         traverse_parents(parents, new_parent, result, topological_mask,
-                          visited);
-      }
-      result.insert(topological_mask[parent]);
-      visited[parent] = true;
-   }
-}
-
-void topological_sort(vector<int> &order, vector<int> &visited,
-                      vector<Area> &areas, int i)
+void dfs(int i, stack<int> &s, vector<vector<int>> &data, vector<int> &visited,
+         bool print)
 {
    visited[i] = true;
-   for (int j = 0; j < areas[i].out.size(); ++j) {
-      int target = *next(areas[i].out.begin(), j);
-      if (!visited[target]) {
-         topological_sort(order, visited, areas, target);
-      }
+   if (print)
+      cout << i << ", ";
+   for (int j = 0; j < data[i].size(); ++j) {
+      int target = data[i][j];
+      if (!visited[target])
+         dfs(target, s, data, visited, print);
    }
-   order.push_back(i);
+   if (!print)
+      s.push(i);
 }
 
 void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
@@ -57,21 +44,6 @@ void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
       if (!visited[target])
          dfs_component(target, data, visited, comp, area_number, area_points);
    }
-}
-
-void dfs(int i, stack<int> &s, vector<vector<int>> &data, vector<int> &visited,
-         bool print)
-{
-   visited[i] = true;
-   if (print)
-      cout << i << ", ";
-   for (int j = 0; j < data[i].size(); ++j) {
-      int target = data[i][j];
-      if (!visited[target])
-         dfs(target, s, data, visited, print);
-   }
-   if (!print)
-      s.push(i);
 }
 
 vector<Area> find_scc(vector<vector<int>> &data,
@@ -107,6 +79,34 @@ vector<Area> find_scc(vector<vector<int>> &data,
       }
    }
    return areas;
+}
+
+void topological_sort(vector<int> &order, vector<int> &visited,
+                      vector<Area> &areas, int i)
+{
+   visited[i] = true;
+   for (int j = 0; j < areas[i].out.size(); ++j) {
+      int target = *next(areas[i].out.begin(), j);
+      if (!visited[target]) {
+         topological_sort(order, visited, areas, target);
+      }
+   }
+   order.push_back(i);
+}
+
+void traverse_parents(vector<vector<int>> &parents, int parent,
+                      set<int> &result, vector<int> &topological_mask,
+                      vector<bool> &visited)
+{
+   if (parent != -1 && !visited[parent]) {
+      for (int i = 0; i < parents[parent].size(); ++i) {
+         int new_parent = parents[parent][i];
+         traverse_parents(parents, new_parent, result, topological_mask,
+                          visited);
+      }
+      result.insert(topological_mask[parent]);
+      visited[parent] = true;
+   }
 }
 
 int main()
