@@ -26,6 +26,15 @@ bool is_point_in_area(int target, std::vector<int> *area)
    return false;
 }
 
+bool is_target_in_area(int target, std::vector<int> *area)
+{
+   for (long unsigned int r = 0; r < area->size(); ++r) {
+      if (target == area->at(r))
+         return true;
+   }
+   return false;
+}
+
 void find_scc(int i, std::stack<int> &stack, std::vector<int> &lowlink,
               std::vector<int> &indexes, std::vector<bool> &in_stack,
               std::vector<std::vector<int>> &data, std::vector<Area> &area,
@@ -73,10 +82,13 @@ void find_scc(int i, std::stack<int> &stack, std::vector<int> &lowlink,
          cp_area = k;
 
       // if target is not in same area add the edge to area list
+      // TODO: this is extremly uneffective!
       for (long unsigned int p = 0; p < n->size(); ++p) {
-         for (long unsigned int q = 0; q < data[p].size(); ++q) {
-            if (!is_point_in_area(data[p][q], n))
-               t->push_back(data[p][q]);
+         int tmp_point = n->at(p);
+         for (long unsigned int q = 0; q < data[tmp_point].size(); ++q) {
+            if (!is_point_in_area(data[tmp_point][q], n) &&
+                !is_target_in_area(data[tmp_point][q], t))
+               t->push_back(data[tmp_point][q]);
          }
       }
       area.push_back(Area(n, t));
