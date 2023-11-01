@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <set>
 #include <stack>
@@ -7,7 +8,7 @@
 using namespace std;
 
 // #define PRINT_LOADED_DATA
-#define PRINT_LOWLINK
+// #define PRINT_LOWLINK
 
 struct Area {
    set<int> in;
@@ -63,6 +64,29 @@ void find_scc(int i, stack<int> &stack, vector<int> &lowlink,
       printf("%3d ", lowlink.at(l));
    printf("\n");
 #endif // end of PRINT_LOWLINK
+}
+
+void topological_sort(int i, vector<bool> &visited,
+                      vector<int> &topological_order, vector<Area> &areas)
+{
+   visited[i] = true;
+   for (auto &target : areas[i].out)
+      if (!visited[target])
+         topological_sort(target, visited, topological_order, areas);
+   topological_order.push_back(i);
+}
+
+void through_parents(int i, vector<bool> &visited_parents,
+                     vector<vector<int>> &parents, set<int> &tmp_areas,
+                     vector<int> &topological_order)
+{
+   if (i != -1 && !visited_parents[i]) {
+      for (auto &j : parents[i])
+         through_parents(j, visited_parents, parents, tmp_areas,
+                         topological_order);
+      tmp_areas.insert(topological_order[i]);
+      visited_parents[i] = true;
+   }
 }
 
 int main(int argc, char const *argv[])
@@ -135,6 +159,96 @@ int main(int argc, char const *argv[])
       ++comp_id;
    }
 
-   
+   const int areas_count = areas.size();
+
+   // Make DAG topological ordered
+   vector<int> topological_order;
+   vector<bool> visited(areas_count, false);
+
+   // Topological sorting
+   // inspiration https://www.geeksforgeeks.org/topological-sorting/
+   for (int i = 0; i < areas_count; ++i) {
+      if (!visited[i])
+         topological_sort(i, visited, topological_order, areas);
+   }
+
+   reverse(topological_order.begin(), topological_order.end());
+
+   vector<int> reverse_order(topological_order.size());
+   for (int i = 0; i < topological_order.size(); ++i) {
+      reverse_order[topological_order[i]] = i;
+   }
+
+   // find CP
+   int CP_area_no;
+   for (int i = 0; i < topological_order.size(); ++i)
+      if (areas[topological_order[i]].cointains_CP) {
+         CP_area_no = i;
+         break;
+      }
+
+   set<int> tmp_areas;
+   vector<vector<int>> parents(areas_count, vector<int>(1, -1));
+   vector<int> distan(areas_count, 0); // distance
+   distan[0] = 0;
+
+   // find trip to CP
+   int max;
+   for (int i = 1; i <= CP_area_no; ++i) {
+      max = -1;
+      for (auto &track_in : areas[topological_order[i]].in) {
+         int pos = reverse_order[track_in];
+         if (distan[pos] == max)
+            parents[i].push_back(pos);
+         if (distan[pos] > max) {
+            max = distan[pos];
+            parents[i].clear();
+            parents[i].push_back(pos);
+         }
+      }
+      max += 1;
+      distan[i] = max;
+   }
+
+   int max_track = 0;
+   vector<bool> visited_parents(areas_count, false);
+   tmp_areas.insert(topological_order[CP_area_no]);
+   max_track += distan[CP_area_no];
+   for (auto &parent : parents[CP_area_no])
+      through_parents(parent, visited_parents, parents, tmp_areas,
+                      topological_order);
+
+   // find trip from CP
+   distan[CP_area_no] = 0;
+   vector<vector<int>> parents_r(areas.size());
+   for (int i = areas_count - 2; i >= CP_area_no; --i) {
+      max = -1;
+      vector<int> par(1, -1);
+      for (auto &track_from : areas[topological_order[i]].out) {
+         int pos = reverse_order[track_from];
+         if (distan[pos] == max)
+            par.push_back(pos);
+         if (distan[pos] > max) {
+            max = distan[pos];
+            par.clear();
+            par.push_back(pos);
+         }
+      }
+      max += 1;
+      distan[i] = max;
+      parents_r[i] = par;
+   }
+   max_track += distan[CP_area_no] + 1;
+   for (int i = 0; i < visited_parents.size(); ++i)
+      visited_parents[i] = false;
+   for (auto &parent : parents_r[CP_area_no])
+      through_parents(parent, visited_parents, parents_r, tmp_areas,
+                      topological_order);
+
+   int kit_count = 0;
+   for (int i = 0; i < tmp_areas.size(); ++i)
+      kit_count += areas[i].points.size();
+   printf("%d %d\n", max_track, kit_count);
+
    return 0;
 }
