@@ -21,7 +21,8 @@ void traverse_parents(vector<vector<int>> &parents, int parent,
                       vector<bool> &visited)
 {
    if (parent != -1 && !visited[parent]) {
-      for (auto &new_parent : parents[parent]) {
+      for (int i = 0; i < parents[parent].size(); ++i) {
+         int new_parent = parents[parent][i];
          traverse_parents(parents, new_parent, result, topological_mask,
                           visited);
       }
@@ -34,7 +35,8 @@ void topological_sort(vector<int> &order, vector<int> &visited,
                       vector<Area> &areas, int i)
 {
    visited[i] = true;
-   for (auto &target : areas[i].out) {
+   for (int j = 0; j < areas[i].out.size(); ++j) {
+      int target = *next(areas[i].out.begin(), j);
       if (!visited[target]) {
          topological_sort(order, visited, areas, target);
       }
@@ -50,7 +52,8 @@ void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
    area_points[i] = area_number;
    if (i == cp_number)
       comp.has_CP = true;
-   for (auto &target : data[i]) {
+   for (int j = 0; j < data[i].size(); ++j) {
+      int target = data[i][j];
       if (!visited[target])
          dfs_component(target, data, visited, comp, area_number, area_points);
    }
@@ -62,9 +65,11 @@ void dfs(int i, stack<int> &s, vector<vector<int>> &data, vector<int> &visited,
    visited[i] = true;
    if (print)
       cout << i << ", ";
-   for (auto &target : data[i])
+   for (int j = 0; j < data[i].size(); ++j) {
+      int target = data[i][j];
       if (!visited[target])
          dfs(target, s, data, visited, print);
+   }
    if (!print)
       s.push(i);
 }
@@ -129,11 +134,13 @@ int main()
 
    // Transform data to areas (DAG)
    int area_number = 0;
-   for (auto &comp : areas) {
-      for (auto &i : comp.points) {
-         for (auto &target : data[i]) {
-            if (comp.points.count(target) == 0) {
-               comp.out.insert(area_points[target]);
+   for (int i = 0; i < areas.size(); ++i) {
+      for (int j = 0; j < areas[i].points.size(); ++j) {
+         int point = *next(areas[i].points.begin(), j);
+         for (int k = 0; k < data[point].size(); ++k) {
+            int target = data[point][k];
+            if (areas[i].points.count(target) == 0) {
+               areas[i].out.insert(area_points[target]);
                areas[area_points[target]].in.insert(area_number);
             }
          }
@@ -173,7 +180,8 @@ int main()
    // find trip to CP
    for (int i = 1; i <= CP_area_number; ++i) {
       int max_dist = -1;
-      for (auto &edge_in : areas[topological_mask[i]].in) {
+      for (int j = 0; j < areas[topological_mask[i]].in.size(); ++j) {
+         int edge_in = *next(areas[topological_mask[i]].in.begin(), j);
          int position = reversed_order[edge_in];
          if (dist[position] == max_dist) {
             parents_target[i].push_back(position);
@@ -193,9 +201,9 @@ int main()
    vector<bool> visited_target(areas.size(), false);
    result.insert(topological_mask[CP_area_number]);
    max_trip += dist[CP_area_number];
-   for (auto &parent : parents_target[CP_area_number]) {
-      traverse_parents(parents_target, parent, result, topological_mask,
-                       visited_target);
+   for (int i = 0; i < parents_target[CP_area_number].size(); ++i) {
+      traverse_parents(parents_target, parents_target[CP_area_number][i],
+                       result, topological_mask, visited_target);
    }
 
    // find trip from CP
@@ -204,7 +212,8 @@ int main()
    for (int i = areas.size() - 2; i >= CP_area_number; --i) {
       int max_dist = -1;
       vector<int> parent(1, -1);
-      for (auto &edge_source : areas[topological_mask[i]].out) {
+      for (int j = 0; j < areas[topological_mask[i]].out.size(); ++j) {
+         int edge_source = *next(areas[topological_mask[i]].out.begin(), j);
          int position = reversed_order[edge_source];
          if (dist[position] == max_dist) {
             parent.push_back(position);
@@ -222,9 +231,9 @@ int main()
    // traversal of parents
    max_trip += dist[CP_area_number] + 1;
    vector<bool> visited_from(areas.size(), false);
-   for (auto &parent : parents_source[CP_area_number]) {
-      traverse_parents(parents_source, parent, result, topological_mask,
-                       visited_from);
+   for (int i = 0; i < parents_source[CP_area_number].size(); ++i) {
+      traverse_parents(parents_source, parents_source[CP_area_number][i],
+                       result, topological_mask, visited_from);
    }
 
    int kit_count = 0;
