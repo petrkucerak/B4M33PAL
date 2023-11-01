@@ -2,253 +2,233 @@
 #include <iostream>
 #include <set>
 #include <stack>
-#include <stdlib.h>
+#include <stdio.h>
 #include <vector>
 
 using namespace std;
 
-// #define PRINT_LOADED_DATA
-// #define PRINT_LOWLINK
-
 struct Area {
-   set<int> in;
    set<int> out;
+   set<int> in;
    set<int> points;
-   bool cointains_CP;
+   bool has_CP;
 };
 
-void find_scc(int i, stack<int> &stack, vector<int> &lowlink,
-              vector<int> &indexes, vector<bool> &in_stack,
-              vector<vector<int>> &data, vector<Area> &areas, int &index,
-              int &cp_no)
+int cp_no;
+
+void through_parents(vector<vector<int>> &parents, int parent, set<int> &res,
+                     vector<int> &topological_mask, vector<bool> &visited)
 {
-   indexes[i] = lowlink[i] = ++index;
-   stack.push(i);
-   in_stack[i] = true;
-   for (long unsigned int n = 0; n < data[i].size(); ++n) {
-      int target = data[i][n];
-      if (indexes[target] == 0) { // not yet visited
-         find_scc(target, stack, lowlink, indexes, in_stack, data, areas, index,
-                  cp_no);
-         lowlink[i] = min(lowlink[i], lowlink[target]);
-      } else if (in_stack[target]) {
-         lowlink[i] = min(lowlink[i], indexes[target]);
+   if (parent != -1 && !visited[parent]) {
+      for (auto &newparent : parents[parent]) {
+         through_parents(parents, newparent, res, topological_mask, visited);
       }
+      res.insert(topological_mask[parent]);
+      visited[parent] = true;
    }
-
-   if (lowlink[i] == indexes[i]) { // point is head of SCC (area)
-      Area new_area = {.cointains_CP = false};
-      int j;
-      while (stack.top() != i) {
-         j = stack.top();
-         in_stack[j] = false;
-         stack.pop();
-
-         new_area.points.insert(j);
-         if (j == cp_no)
-            new_area.cointains_CP = true;
-      }
-      j = stack.top();
-      in_stack[j] = false;
-      stack.pop();
-
-      new_area.points.insert(j);
-      if (j == cp_no)
-         new_area.cointains_CP = true;
-
-      areas.push_back(new_area);
-   }
-
-#ifdef PRINT_LOWLINK
-   for (long unsigned int l = 0; l < lowlink.size(); ++l)
-      printf("%3d ", lowlink.at(l));
-   printf("\n");
-#endif // end of PRINT_LOWLINK
 }
 
-void topological_sort(int i, vector<bool> &visited,
-                      vector<int> &topological_order, vector<Area> &areas)
+void topological_sort(vector<int> &order, vector<int> &visited,
+                      vector<Area> &areas, int i)
 {
    visited[i] = true;
-   for (auto &target : areas[i].out)
-      if (!visited[target])
-         topological_sort(target, visited, topological_order, areas);
-   topological_order.push_back(i);
+   for (auto &target : areas[i].out) {
+      if (!visited[target]) {
+         topological_sort(order, visited, areas, target);
+      }
+   }
+   order.push_back(i);
 }
 
-void through_parents(int i, vector<bool> &visited_parents,
-                     vector<vector<int>> &parents, set<int> &tmp_areas,
-                     vector<int> &topological_order)
+void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
+                   Area &comp, int area_no, vector<int> &area_points)
 {
-   if (i != -1 && !visited_parents[i]) {
-      for (auto &j : parents[i])
-         through_parents(j, visited_parents, parents, tmp_areas,
-                         topological_order);
-      tmp_areas.insert(topological_order[i]);
-      visited_parents[i] = true;
+   visited[i] = true;
+   comp.points.insert(i);
+   area_points[i] = area_no;
+   if (i == cp_no)
+      comp.has_CP = true;
+   for (auto &target : data[i]) {
+      if (!visited[target])
+         dfs_component(target, data, visited, comp, area_no, area_points);
    }
 }
 
-int main(int argc, char const *argv[])
+void dfs(int i, stack<int> &s, vector<vector<int>> &data, vector<int> &visited,
+         bool print)
+{
+   visited[i] = true;
+   if (print)
+      cout << i << ", ";
+   for (auto &target : data[i])
+      if (!visited[target])
+         dfs(target, s, data, visited, print);
+   if (!print)
+      s.push(i);
+}
+
+vector<Area> find_scc(vector<vector<int>> &data,
+                      vector<vector<int>> &inverse_data,
+                      vector<int> &area_points)
+{
+   // first DFS, push to stack
+   stack<int> s;
+   int size = data.size();
+   vector<int> visited(size, false);
+
+   for (int i = 0; i < size; ++i) {
+      if (!visited[i]) {
+         dfs(i, s, data, visited, false);
+      }
+   }
+   // second DFS on inverse_data
+   for (int i = 0; i < visited.size(); ++i) {
+      visited[i] = false;
+   }
+
+   vector<Area> areas;
+   int area_no = 0;
+   while (!s.empty()) {
+      int i = s.top();
+      s.pop();
+      if (!visited[i]) {
+         Area new_area = {.has_CP = false};
+         dfs_component(i, inverse_data, visited, new_area, area_no,
+                       area_points);
+         areas.push_back(new_area);
+         area_no++;
+      }
+   }
+   return areas;
+}
+
+int main()
 {
    // Load metadata
-   int points_count, tracks_count, cp_no;
+   int points_count, tracks_count;
    if (scanf("%d %d %d\n", &points_count, &tracks_count, &cp_no) != 3) {
       fprintf(stderr, "ERROR: Can not load correctly the meta data!\n");
       exit(EXIT_FAILURE);
    }
 
-   printf("Points count: %d | Tracks count: %d | CP no: %d\n", points_count,
-          tracks_count, cp_no);
-
    vector<vector<int>> data(points_count);
-   for (auto i = 0; i < tracks_count; ++i) {
-      int node, target;
-      if (scanf("%d %d\n", &node, &target) != 2) {
-         fprintf(stderr, "ERROR: Can not load correctly the graph data!\n");
-         exit(EXIT_FAILURE);
-      };
-      data[node].push_back(target); // TODO: make it effective
+   vector<vector<int>> inverse_data(points_count);
+   // Load data
+   int source, target;
+   for (int i = 0; i < tracks_count; ++i) {
+      scanf("%d %d", &source, &target);
+      data[source].push_back(target);
+      inverse_data[target].push_back(source);
    }
 
-#ifdef PRINT_LOADED_DATA
-   for (auto i = 0; i < points_count; ++i) {
-      printf("%4d | ", i);
-      for (auto j = 0; j < data[i].size(); ++j) {
-         printf("%d ", data[i][j]);
-      }
-      printf("\n");
-   }
-#endif // end of PRINT_LOADED_DATA
-
-   // Tarjan's Algorithm to get CSS
-   vector<Area> areas;
-   stack<int> stack;
-   vector<bool> in_stack(points_count, false);
-   vector<int> lowlink(points_count);
-   vector<int> indexes(points_count, 0);
-   int index = 0;
-   for (auto i = 0; i < points_count; ++i) {
-      if (indexes[i] == 0) // is not visited
-      {
-         find_scc(i, stack, lowlink, indexes, in_stack, data, areas, index,
-                  cp_no);
-         // std::cout << "Start from node: " << i << std::endl;
-      }
-   }
-
-   // Create areas mask
-   vector<int> areas_mask(points_count, -1);
-   for (auto i = 0; i < areas.size(); ++i) {
-      for (auto &point : areas[i].points) {
-         areas_mask[point] = i;
-      }
-   }
+   // get CSS
+   vector<int> area_points(points_count, -1);
+   vector<Area> areas = find_scc(data, inverse_data, area_points);
 
    // Trasnform data to areas (DAG)
-   int comp_id = 0;
-   for (auto &area : areas) {
-      for (auto &point : area.points) {
-         for (auto &to : data[point]) {
-            if (area.points.count(to) == 0) { // edge is not added
-               area.out.insert(areas_mask[to]);
-               areas[areas_mask[to]].in.insert(areas_mask[comp_id]);
+   int area_no = 0;
+   for (auto &comp : areas) {
+      for (auto &i : comp.points) {
+         for (auto &target : data[i]) {
+            if (comp.points.count(target) == 0) {
+               comp.out.insert(area_points[target]);
+               areas[area_points[target]].in.insert(area_no);
             }
          }
       }
-      ++comp_id;
+      area_no++;
    }
-
-   const int areas_count = areas.size();
-
-   // Make DAG topological ordered
-   vector<int> topological_order;
-   vector<bool> visited(areas_count, false);
 
    // Topological sorting
    // inspiration https://www.geeksforgeeks.org/topological-sorting/
-   for (int i = 0; i < areas_count; ++i) {
-      if (!visited[i])
-         topological_sort(i, visited, topological_order, areas);
+   vector<int> topological_mask;
+   vector<int> visited(areas.size(), false);
+   for (int i = 0; i < areas.size(); ++i) {
+      if (!visited[i]) {
+         topological_sort(topological_mask, visited, areas, i);
+      }
    }
 
-   reverse(topological_order.begin(), topological_order.end());
-
-   vector<int> reverse_order(topological_order.size());
-   for (int i = 0; i < topological_order.size(); ++i) {
-      reverse_order[topological_order[i]] = i;
+   // swap order
+   reverse(topological_mask.begin(), topological_mask.end());
+   vector<int> reversed_order(topological_mask.size());
+   for (int i = 0; i < topological_mask.size(); ++i) {
+      reversed_order[topological_mask[i]] = i;
    }
-
-   // find CP
-   int CP_area_no;
-   for (int i = 0; i < topological_order.size(); ++i)
-      if (areas[topological_order[i]].cointains_CP) {
+   // get CP index
+   int CP_area_no = 0;
+   for (int i = 0; i < topological_mask.size(); ++i) {
+      if (areas[topological_mask[i]].has_CP) {
          CP_area_no = i;
          break;
       }
-
-   set<int> tmp_areas;
-   vector<vector<int>> parents(areas_count, vector<int>(1, -1));
-   vector<int> distan(areas_count, 0); // distance
-   distan[0] = 0;
-
-   // find trip to CP
-   int max;
-   for (int i = 1; i <= CP_area_no; ++i) {
-      max = -1;
-      for (auto &track_in : areas[topological_order[i]].in) {
-         int pos = reverse_order[track_in];
-         if (distan[pos] == max)
-            parents[i].push_back(pos);
-         if (distan[pos] > max) {
-            max = distan[pos];
-            parents[i].clear();
-            parents[i].push_back(pos);
-         }
-      }
-      max += 1;
-      distan[i] = max;
    }
 
-   int max_track = 0;
-   vector<bool> visited_parents(areas_count, false);
-   tmp_areas.insert(topological_order[CP_area_no]);
-   max_track += distan[CP_area_no];
-   for (auto &parent : parents[CP_area_no])
-      through_parents(parent, visited_parents, parents, tmp_areas,
-                      topological_order);
+   set<int> res;
+   vector<int> dist(areas.size(), 0);
+   vector<vector<int>> parents_targe(areas.size(), vector<int>(1, -1));
+   dist[0] = 0;
+   // find trip to CP
+   for (int i = 1; i <= CP_area_no; ++i) {
+      int max_dist = -1;
+      for (auto &edgeIn : areas[topological_mask[i]].in) {
+         int position = reversed_order[edgeIn];
+         if (dist[position] == max_dist) {
+            parents_targe[i].push_back(position);
+         }
+         if (dist[position] > max_dist) {
+            max_dist = dist[position];
+            parents_targe[i].clear();
+            parents_targe[i].push_back(position);
+         }
+      }
+      max_dist += 1;
+      dist[i] = max_dist;
+   }
+
+   // traversal of parents
+   int max_trip = 0;
+   vector<bool> visited_target(areas.size(), false);
+   res.insert(topological_mask[CP_area_no]);
+   max_trip += dist[CP_area_no];
+   for (auto &parent : parents_targe[CP_area_no]) {
+      through_parents(parents_targe, parent, res, topological_mask,
+                      visited_target);
+   }
 
    // find trip from CP
-   distan[CP_area_no] = 0;
-   vector<vector<int>> parents_r(areas.size());
-   for (int i = areas_count - 2; i >= CP_area_no; --i) {
-      max = -1;
-      vector<int> par(1, -1);
-      for (auto &track_from : areas[topological_order[i]].out) {
-         int pos = reverse_order[track_from];
-         if (distan[pos] == max)
-            par.push_back(pos);
-         if (distan[pos] > max) {
-            max = distan[pos];
-            par.clear();
-            par.push_back(pos);
+   dist[CP_area_no] = 0;
+   vector<vector<int>> parents_source(areas.size());
+   for (int i = areas.size() - 2; i >= CP_area_no; --i) {
+      int max_dist = -1;
+      vector<int> parent(1, -1);
+      for (auto &edge_source : areas[topological_mask[i]].out) {
+         int position = reversed_order[edge_source];
+         if (dist[position] == max_dist) {
+            parent.push_back(position);
+         }
+         if (dist[position] > max_dist) {
+            max_dist = dist[position];
+            parent.clear();
+            parent.push_back(position);
          }
       }
-      max += 1;
-      distan[i] = max;
-      parents_r[i] = par;
+      max_dist += 1;
+      dist[i] = max_dist;
+      parents_source[i] = parent;
    }
-   max_track += distan[CP_area_no] + 1;
-   for (int i = 0; i < visited_parents.size(); ++i)
-      visited_parents[i] = false;
-   for (auto &parent : parents_r[CP_area_no])
-      through_parents(parent, visited_parents, parents_r, tmp_areas,
-                      topological_order);
+   // traversal of parents
+   max_trip += dist[CP_area_no] + 1;
+   vector<bool> visitedFrom(areas.size(), false);
+   for (auto &parent : parents_source[CP_area_no]) {
+      through_parents(parents_source, parent, res, topological_mask,
+                      visitedFrom);
+   }
 
    int kit_count = 0;
-   for (int i = 0; i < tmp_areas.size(); ++i)
-      kit_count += areas[i].points.size();
-   printf("%d %d\n", max_track, kit_count);
-
+   for (auto &area : res) {
+      kit_count += areas[area].points.size();
+   }
+   cout << max_trip << " " << kit_count << endl;
    return 0;
 }
