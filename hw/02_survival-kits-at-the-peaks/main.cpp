@@ -2,7 +2,6 @@
 #include <iostream>
 #include <set>
 #include <stack>
-#include <stdio.h>
 #include <vector>
 
 using namespace std;
@@ -14,6 +13,8 @@ struct Area {
    set<int> points; // Points within this area
    bool has_CP;     // Flag indicating if this area contains a CP (Checkpoint)
 };
+
+// #define TEST_PRINT_SORT
 
 int cp_number; // The checkpoint number
 
@@ -138,14 +139,14 @@ int main()
       exit(EXIT_FAILURE);
    }
 
-   vector<vector<int>> data(points_count);
    vector<vector<int>> inverse_data(points_count);
+   vector<vector<int>> data(points_count);
    // Load data
    int source, target;
    for (int i = 0; i < tracks_count; ++i) {
       scanf("%d %d", &source, &target);
       data[source].push_back(target);
-      inverse_data[target].push_back(source);
+      inverse_data[target].push_back(source); // symetricity
    }
 
    // Find Strongly Connected Components (SCCs) in the graph
@@ -231,8 +232,8 @@ int main()
    }
 
    // Find the trip from CP
-   dist[CP_area_number] = 0;
    vector<vector<int>> parents_source(areas.size());
+   dist[CP_area_number] = 0;
    for (int i = areas.size() - 2; i >= CP_area_number; --i) {
       int max_dist = -1;
       vector<int> parent(1, -1);
