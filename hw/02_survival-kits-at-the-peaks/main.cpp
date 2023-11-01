@@ -7,22 +7,24 @@
 
 using namespace std;
 
+// Define a structure to represent an area in the graph
 struct Area {
-   set<int> out;
-   set<int> in;
-   set<int> points;
-   bool has_CP;
+   set<int> out;    // Outgoing edges from this area
+   set<int> in;     // Incoming edges to this area
+   set<int> points; // Points within this area
+   bool has_CP;     // Flag indicating if this area contains a CP (Checkpoint)
 };
 
-int cp_number;
+int cp_number; // The checkpoint number
 
+// Depth-First Search (DFS) function to traverse the graph
 void dfs(int i, stack<int> &s, vector<vector<int>> &data, vector<int> &visited,
          bool print)
 {
    visited[i] = true;
    if (print)
       cout << i << ", ";
-   int j = 0;
+   long unsigned int j = 0;
    while (j < data[i].size()) {
       int target = data[i][j];
       if (!visited[target]) {
@@ -38,6 +40,7 @@ void dfs(int i, stack<int> &s, vector<vector<int>> &data, vector<int> &visited,
       s.push(i);
 }
 
+// Depth-First Search (DFS) function to traverse the graph
 void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
                    Area &comp, int area_number, vector<int> &area_points)
 {
@@ -46,7 +49,7 @@ void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
    area_points[i] = area_number;
    if (i == cp_number)
       comp.has_CP = true;
-   int j = 0;
+   long unsigned int j = 0;
    while (j < data[i].size()) {
       int target = data[i][j];
       if (!visited[target]) {
@@ -60,11 +63,12 @@ void dfs_component(int i, vector<vector<int>> &data, vector<int> &visited,
    }
 }
 
+// Find strongly connected components (SCCs) in the graph
 vector<Area> find_scc(vector<vector<int>> &data,
                       vector<vector<int>> &inverse_data,
                       vector<int> &area_points)
 {
-   // first DFS, push to stack
+   // First DFS to push nodes to the stack
    stack<int> s;
    int size = data.size();
    vector<int> visited(size, false);
@@ -74,8 +78,8 @@ vector<Area> find_scc(vector<vector<int>> &data,
          dfs(i, s, data, visited, false);
       }
    }
-   // second DFS on inverse_data
-   for (int i = 0; i < visited.size(); ++i) {
+   // Second DFS on the inverse data
+   for (long unsigned int i = 0; i < visited.size(); ++i) {
       visited[i] = false;
    }
 
@@ -95,11 +99,12 @@ vector<Area> find_scc(vector<vector<int>> &data,
    return areas;
 }
 
+// Perform topological sorting on the graph
 void topological_sort(vector<int> &order, vector<int> &visited,
                       vector<Area> &areas, int i)
 {
    visited[i] = true;
-   for (int j = 0; j < areas[i].out.size(); ++j) {
+   for (long unsigned int j = 0; j < areas[i].out.size(); ++j) {
       int target = *next(areas[i].out.begin(), j);
       if (!visited[target]) {
          topological_sort(order, visited, areas, target);
@@ -108,12 +113,13 @@ void topological_sort(vector<int> &order, vector<int> &visited,
    order.push_back(i);
 }
 
+// Traverse parents of an area in the topological order
 void traverse_parents(vector<vector<int>> &parents, int parent,
                       set<int> &result, vector<int> &topological_mask,
                       vector<bool> &visited)
 {
    if (parent != -1 && !visited[parent]) {
-      for (int i = 0; i < parents[parent].size(); ++i) {
+      for (long unsigned int i = 0; i < parents[parent].size(); ++i) {
          int new_parent = parents[parent][i];
          traverse_parents(parents, new_parent, result, topological_mask,
                           visited);
@@ -142,17 +148,17 @@ int main()
       inverse_data[target].push_back(source);
    }
 
-   // Get CSS
+   // Find Strongly Connected Components (SCCs) in the graph
    // Inspiration: https://www.geeksforgeeks.org/strongly-connected-components/
    vector<int> area_points(points_count, -1);
    vector<Area> areas = find_scc(data, inverse_data, area_points);
 
-   // Transform data to areas (DAG)
+   // Transform data to areas (Directed Acyclic Graph - DAG)
    int area_number = 0;
-   for (int i = 0; i < areas.size(); ++i) {
-      for (int j = 0; j < areas[i].points.size(); ++j) {
+   for (long unsigned int i = 0; i < areas.size(); ++i) {
+      for (long unsigned int j = 0; j < areas[i].points.size(); ++j) {
          int point = *next(areas[i].points.begin(), j);
-         for (int k = 0; k < data[point].size(); ++k) {
+         for (long unsigned int k = 0; k < data[point].size(); ++k) {
             int target = data[point][k];
             if (areas[i].points.count(target) == 0) {
                areas[i].out.insert(area_points[target]);
@@ -163,25 +169,26 @@ int main()
       area_number++;
    }
 
-   // Topological sorting
+   // Perform topological sorting
    // inspiration https://www.geeksforgeeks.org/topological-sorting/
    vector<int> topological_mask;
    vector<int> visited(areas.size(), false);
-   for (int i = 0; i < areas.size(); ++i) {
+   for (long unsigned int i = 0; i < areas.size(); ++i) {
       if (!visited[i]) {
          topological_sort(topological_mask, visited, areas, i);
       }
    }
 
-   // swap order
+   // Swap the order
    reverse(topological_mask.begin(), topological_mask.end());
    vector<int> reversed_order(topological_mask.size());
-   for (int i = 0; i < topological_mask.size(); ++i) {
+   for (long unsigned int i = 0; i < topological_mask.size(); ++i) {
       reversed_order[topological_mask[i]] = i;
    }
-   // get CP index
+
+   // Get the CP index
    int CP_area_number = 0;
-   for (int i = 0; i < topological_mask.size(); ++i) {
+   for (long unsigned int i = 0; i < topological_mask.size(); ++i) {
       if (areas[topological_mask[i]].has_CP) {
          CP_area_number = i;
          break;
@@ -192,10 +199,11 @@ int main()
    vector<int> dist(areas.size(), 0);
    vector<vector<int>> parents_target(areas.size(), vector<int>(1, -1));
    dist[0] = 0;
-   // find trip to CP
+   // Find the trip to CP
    for (int i = 1; i <= CP_area_number; ++i) {
       int max_dist = -1;
-      for (int j = 0; j < areas[topological_mask[i]].in.size(); ++j) {
+      for (long unsigned int j = 0; j < areas[topological_mask[i]].in.size();
+           ++j) {
          int edge_in = *next(areas[topological_mask[i]].in.begin(), j);
          int position = reversed_order[edge_in];
          if (dist[position] == max_dist) {
@@ -211,23 +219,25 @@ int main()
       dist[i] = max_dist;
    }
 
-   // traversal of parents
+   // Traverse parents
    int max_trip = 0;
    vector<bool> visited_target(areas.size(), false);
    result.insert(topological_mask[CP_area_number]);
    max_trip += dist[CP_area_number];
-   for (int i = 0; i < parents_target[CP_area_number].size(); ++i) {
+   for (long unsigned int i = 0; i < parents_target[CP_area_number].size();
+        ++i) {
       traverse_parents(parents_target, parents_target[CP_area_number][i],
                        result, topological_mask, visited_target);
    }
 
-   // find trip from CP
+   // Find the trip from CP
    dist[CP_area_number] = 0;
    vector<vector<int>> parents_source(areas.size());
    for (int i = areas.size() - 2; i >= CP_area_number; --i) {
       int max_dist = -1;
       vector<int> parent(1, -1);
-      for (int j = 0; j < areas[topological_mask[i]].out.size(); ++j) {
+      for (long unsigned int j = 0; j < areas[topological_mask[i]].out.size();
+           ++j) {
          int edge_source = *next(areas[topological_mask[i]].out.begin(), j);
          int position = reversed_order[edge_source];
          if (dist[position] == max_dist) {
@@ -243,10 +253,11 @@ int main()
       dist[i] = max_dist;
       parents_source[i] = parent;
    }
-   // traversal of parents
+   // Traverse parents from CP
    max_trip += dist[CP_area_number] + 1;
    vector<bool> visited_from(areas.size(), false);
-   for (int i = 0; i < parents_source[CP_area_number].size(); ++i) {
+   for (long unsigned int i = 0; i < parents_source[CP_area_number].size();
+        ++i) {
       traverse_parents(parents_source, parents_source[CP_area_number][i],
                        result, topological_mask, visited_from);
    }
