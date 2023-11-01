@@ -1,44 +1,25 @@
 #include <iostream>
+#include <set>
 #include <stack>
 #include <stdlib.h>
 #include <vector>
 
+using namespace std;
+
 // #define PRINT_LOADED_DATA
-// #define PRINT_LOWLINK
+#define PRINT_LOWLINK
 
 struct Area {
-   std::vector<int> *nodes;
-   std::vector<int> *targets;
-   // int tracks_cout; can use nodes.size()
-
-   Area(std::vector<int> *nodes, std::vector<int> *targets)
-       : nodes(nodes), targets(targets)
-   {
-   }
+   set<int> in;
+   set<int> out;
+   set<int> points;
+   bool cointains_CP;
 };
 
-bool is_point_in_area(int target, std::vector<int> *area)
-{
-   for (long unsigned int r = 0; r < area->size(); ++r) {
-      if (target == area->at(r))
-         return true;
-   }
-   return false;
-}
-
-bool is_target_in_area(int target, std::vector<int> *area)
-{
-   for (long unsigned int r = 0; r < area->size(); ++r) {
-      if (target == area->at(r))
-         return true;
-   }
-   return false;
-}
-
-void find_scc(int i, std::stack<int> &stack, std::vector<int> &lowlink,
-              std::vector<int> &indexes, std::vector<bool> &in_stack,
-              std::vector<std::vector<int>> &data, std::vector<Area> &area,
-              int &index, int &cp_area, int &cp_no)
+void find_scc(int i, stack<int> &stack, vector<int> &lowlink,
+              vector<int> &indexes, vector<bool> &in_stack,
+              vector<vector<int>> &data, vector<Area> &areas, int &index,
+              int &cp_no)
 {
    indexes[i] = lowlink[i] = ++index;
    stack.push(i);
@@ -46,78 +27,42 @@ void find_scc(int i, std::stack<int> &stack, std::vector<int> &lowlink,
    for (long unsigned int n = 0; n < data[i].size(); ++n) {
       int target = data[i][n];
       if (indexes[target] == 0) { // not yet visited
-         find_scc(target, stack, lowlink, indexes, in_stack, data, area, index,
-                  cp_area, cp_no);
-         lowlink[i] = std::min(lowlink[i], lowlink[target]);
+         find_scc(target, stack, lowlink, indexes, in_stack, data, areas, index,
+                  cp_no);
+         lowlink[i] = min(lowlink[i], lowlink[target]);
       } else if (in_stack[target]) {
-         lowlink[i] = std::min(lowlink[i], indexes[target]);
+         lowlink[i] = min(lowlink[i], indexes[target]);
       }
    }
 
    if (lowlink[i] == indexes[i]) { // point is head of SCC (area)
-      std::vector<int> *n = new std::vector<int>;
-      std::vector<int> *t = new std::vector<int>;
-      int k = area.size() - 1;
-
+      Area new_area = {.cointains_CP = false};
       int j;
       while (stack.top() != i) {
          j = stack.top();
          in_stack[j] = false;
          stack.pop();
 
-         // Add point to area
-         // ++area[k].tracks_cout;
-         n->push_back(j);
+         new_area.points.insert(j);
          if (j == cp_no)
-            cp_area = k;
+            new_area.cointains_CP = true;
       }
       j = stack.top();
       in_stack[j] = false;
       stack.pop();
 
-      // Add point to area
-      // ++area[k].tracks_cout;
-      n->push_back(j);
+      new_area.points.insert(j);
       if (j == cp_no)
-         cp_area = k;
+         new_area.cointains_CP = true;
 
-      // if target is not in same area add the edge to area list
-      // TODO: this is extremly uneffective!
-      for (long unsigned int p = 0; p < n->size(); ++p) {
-         int tmp_point = n->at(p);
-         for (long unsigned int q = 0; q < data[tmp_point].size(); ++q) {
-            if (!is_point_in_area(data[tmp_point][q], n) &&
-                !is_target_in_area(data[tmp_point][q], t))
-               t->push_back(data[tmp_point][q]);
-         }
-      }
-      area.push_back(Area(n, t));
+      areas.push_back(new_area);
    }
+
 #ifdef PRINT_LOWLINK
    for (long unsigned int l = 0; l < lowlink.size(); ++l)
       printf("%3d ", lowlink.at(l));
    printf("\n");
 #endif // end of PRINT_LOWLINK
-}
-
-void topological_sort(int i, std::vector<bool> &is_visited,
-                      std::stack<int> &stack, std::vector<Area> &area)
-{
-   // Mark the current node as visited
-   is_visited[i] = true;
-   std::cout << "N: " << i << std::endl;
-
-   // Recur for all the vertices
-   // adjacent to this vertex
-   for (long unsigned int j = 0; j < area[i].targets->size(); ++j) {
-      int target = area[i].targets->at(j);
-      if (!is_visited[target])
-         topological_sort(target, is_visited, stack, area);
-   }
-
-   // Push current vertex to stack
-   // which stores result
-   stack.push(i);
 }
 
 int main(int argc, char const *argv[])
@@ -132,7 +77,7 @@ int main(int argc, char const *argv[])
    printf("Points count: %d | Tracks count: %d | CP no: %d\n", points_count,
           tracks_count, cp_no);
 
-   std::vector<std::vector<int>> data(points_count);
+   vector<vector<int>> data(points_count);
    for (auto i = 0; i < tracks_count; ++i) {
       int node, target;
       if (scanf("%d %d\n", &node, &target) != 2) {
@@ -152,47 +97,44 @@ int main(int argc, char const *argv[])
    }
 #endif // end of PRINT_LOADED_DATA
 
-   // TODO: start at CP?
-
-   // define variables
-   std::stack<int> stack;
-   std::vector<bool> in_stack(points_count, false);
-   std::vector<int> lowlink(points_count);
-   std::vector<int> indexes(points_count, 0);
-   std::vector<Area> area;
-   int cp_area;
+   // Tarjan's Algorithm to get CSS
+   vector<Area> areas;
+   stack<int> stack;
+   vector<bool> in_stack(points_count, false);
+   vector<int> lowlink(points_count);
+   vector<int> indexes(points_count, 0);
    int index = 0;
-
-   // Tarjan's Algorithm to fnd CSS
    for (auto i = 0; i < points_count; ++i) {
       if (indexes[i] == 0) // is not visited
       {
-         find_scc(i, stack, lowlink, indexes, in_stack, data, area, index,
-                  cp_area, cp_no);
+         find_scc(i, stack, lowlink, indexes, in_stack, data, areas, index,
+                  cp_no);
          // std::cout << "Start from node: " << i << std::endl;
       }
    }
 
-   int areas_count = (int)area.size();
-   // Create topological sort
-   // std::vector<bool> is_visited(areas_count, false);
-   // for (auto i = 0; i < areas_count; ++i) {
-   //    if (!is_visited[i]) {
-   //       // material: https://www.geeksforgeeks.org/topological-sorting/
-   //       topological_sort(i, is_visited, stack, area);
-   //    }
-   // }
-
-   while (!stack.empty()) {
-      std::cout << stack.top() << std::endl;
-      stack.pop();
+   // Create areas mask
+   vector<int> areas_mask(points_count, -1);
+   for (auto i = 0; i < areas.size(); ++i) {
+      for (auto &point : areas[i].points) {
+         areas_mask[point] = i;
+      }
    }
 
-   // remove struct
-   for (int i = 0; i < areas_count; ++i) {
-      delete area[i].nodes;
-      delete area[i].targets;
+   // Trasnform data to areas (DAG)
+   int comp_id = 0;
+   for (auto &area : areas) {
+      for (auto &point : area.points) {
+         for (auto &to : data[point]) {
+            if (area.points.count(to) == 0) { // edge is not added
+               area.out.insert(areas_mask[to]);
+               areas[areas_mask[to]].in.insert(areas_mask[comp_id]);
+            }
+         }
+      }
+      ++comp_id;
    }
 
+   
    return 0;
 }
