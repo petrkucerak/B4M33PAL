@@ -114,8 +114,14 @@ int main(int argc, char const *argv[])
          for (int x = y + 1; x < servers_num; ++x) {
             if (A_map[MAP(x, y)]) // connection exists in A network
                continue;
+            // add connection
             A_map[MAP(x, y)] = 1;
-            // check isomorfism
+            A_map[MAP(y, x)] = 1;
+            // CHECK ISOMORFISM
+
+            // remove connection
+            A_map[MAP(x, y)] = 0;
+            A_map[MAP(y, x)] = 0;
          }
       }
       // add connection back
