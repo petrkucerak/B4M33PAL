@@ -133,14 +133,6 @@ int main(int argc, char const *argv[])
                A_connection[A_sum].push_back(i);
                B_connection[B_sum].push_back(i);
             }
-            // Print serve with same number of connection
-            // cout << endl;
-            // for (int i = 0; i < server_by_connection.size(); ++i) {
-            //    cout << i << ". ";
-            //    for (int j = 0; j < server_by_connection[i].size(); ++j)
-            //       cout << server_by_connection[i][j] << " ";
-            //    cout << endl;
-            // }
 
             // CHECK ISOMORFISM
             // Start mapping A->B
@@ -150,7 +142,7 @@ int main(int argc, char const *argv[])
 
                   // find next server
                   // same rank (number of connections)
-                  // same status (fast/normal)}
+                  // same status (fast/normal)
                }
 
                // remove connection
