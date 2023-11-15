@@ -162,9 +162,10 @@ int main(int argc, char const *argv[])
          B_map[MAP(point.x, point.y)] = 1;
          B_map[MAP(point.y, point.x)] = 1;
       }
-
-      // PRINT RESULTS
-      for (auto result : results)
-         printf("%d %d %d %d\n", result.a, result.b, result.c, result.d);
-      return 0;
    }
+
+   // PRINT RESULTS
+   for (auto result : results)
+      printf("%d %d %d %d\n", result.a, result.b, result.c, result.d);
+   return 0;
+}
