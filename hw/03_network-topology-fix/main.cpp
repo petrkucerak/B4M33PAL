@@ -117,20 +117,54 @@ int main(int argc, char const *argv[])
             // add connection
             A_map[MAP(x, y)] = 1;
             A_map[MAP(y, x)] = 1;
+
+            // HERUISTIC
+            // 1. pair only server with same num of connection
+            vector<vector<int>> A_connection(servers_num - 1);
+            vector<vector<int>> B_connection(servers_num - 1);
+            for (int i = 0; i < servers_num; ++i) {
+               // for each row, get sum of connection
+               int A_sum = 0;
+               int B_sum = 0;
+               for (int j = 0; j < servers_num; ++j) {
+                  A_sum += A_map[MAP(j, i)];
+                  B_sum += B_map[MAP(j, i)];
+               }
+               A_connection[A_sum].push_back(i);
+               B_connection[B_sum].push_back(i);
+            }
+            // Print serve with same number of connection
+            // cout << endl;
+            // for (int i = 0; i < server_by_connection.size(); ++i) {
+            //    cout << i << ". ";
+            //    for (int j = 0; j < server_by_connection[i].size(); ++j)
+            //       cout << server_by_connection[i][j] << " ";
+            //    cout << endl;
+            // }
+
             // CHECK ISOMORFISM
+            // Start mapping A->B
+            // init step
+            for (int i = 0; i < A_connection.size(); ++i) {
+               for (int j = 0; j < A_connection[i].size(); ++j) {
 
-            // remove connection
-            A_map[MAP(x, y)] = 0;
-            A_map[MAP(y, x)] = 0;
+                  // find next server
+                  // same rank (number of connections)
+                  // same status (fast/normal)}
+               }
+
+               // remove connection
+               A_map[MAP(x, y)] = 0;
+               A_map[MAP(y, x)] = 0;
+            }
          }
+         // add connection back
+         B_map[MAP(point.x, point.y)] = 1;
+         B_map[MAP(point.y, point.x)] = 1;
       }
-      // add connection back
-      B_map[MAP(point.x, point.y)] = 1;
-      B_map[MAP(point.y, point.x)] = 1;
-   }
 
-   // PRINT RESULTS
-   for (auto result : results)
-      printf("%d %d %d %d\n", result.a, result.b, result.c, result.d);
-   return 0;
-}
+      // PRINT RESULTS
+      for (auto result : results)
+         printf("%d %d %d %d\n", result.a, result.b, result.c, result.d);
+      return 0;
+   }
