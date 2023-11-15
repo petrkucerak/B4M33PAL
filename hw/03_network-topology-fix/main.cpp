@@ -25,6 +25,29 @@ void print_map(vector<int> map, int servers_num)
    }
 }
 
+bool is_isomorfism(vector<int> A_map, vector<int> B_map,
+                   vector<bool> A_map_fast, vector<bool> B_map_fast,
+                   int servers_num)
+{
+   // HERUISTIC
+   // 1. pair only server with same num of connection
+   vector<vector<int>> A_connection(servers_num - 1);
+   vector<vector<int>> B_connection(servers_num - 1);
+   for (int i = 0; i < servers_num; ++i) {
+      // for each row, get sum of connection
+      int A_sum = 0;
+      int B_sum = 0;
+      for (int j = 0; j < servers_num; ++j) {
+         A_sum += A_map[MAP(j, i)];
+         B_sum += B_map[MAP(j, i)];
+      }
+      // A_connection[A_sum].push_back(i);
+      cout << A_sum << endl;
+      B_connection[B_sum].push_back(i);
+   }
+   return false;
+}
+
 int main(int argc, char const *argv[])
 {
    // LOAD THE DATA
@@ -117,6 +140,15 @@ int main(int argc, char const *argv[])
             // add connection
             A_map[MAP(x, y)] = 1;
             A_map[MAP(y, x)] = 1;
+
+            if (is_isomorfism(A_map, B_map, A_map_fast, B_map_fast,
+                              servers_num)) {
+               int a, b, c, d;
+               point.x < point.y ? c = point.x, d = point.y : c = point.y,
+                                   d = point.x;
+               x < y ? a = x, b = y : a = y, b = x;
+               printf("%d %d %d %d\n", a, b, c, d);
+            }
 
             // add connection back
             B_map[MAP(point.x, point.y)] = 1;
