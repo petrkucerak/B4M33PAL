@@ -22,21 +22,21 @@ void print_network(vector<Server> servers)
 }
 
 int compare_vectr_by_num(vector<int> a, vector<int> b);
-void split2groups(vector<Server> &G, vector<vector<int>> &groups,
+void split2groups(vector<Server> G, vector<vector<int>> &groups,
                   vector<vector<int>> &a_neighbour_groups, int servers_num);
 
-bool group_servers(vector<Server> &A, vector<Server> &B,
+bool group_servers(vector<Server> A, vector<Server> B,
                    vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                    int servers_num);
 
-bool validate_mapping(vector<Server> &A, vector<Server> &B, vector<int> &A2B,
+bool validate_mapping(vector<Server> A, vector<Server> B, vector<int> &A2B,
                       int servers_num);
 
-bool permutation(vector<Server> &A, vector<Server> &B,
+bool permutation(vector<Server> A, vector<Server> B,
                  vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                  int id, vector<int> &A2B, int servers_num);
 
-bool is_isomorfism(vector<Server> &A, vector<Server> &B, int servers_num);
+bool is_isomorfism(vector<Server> A, vector<Server> B, int servers_num);
 
 int main(int argc, char const *argv[])
 {
@@ -138,16 +138,18 @@ int main(int argc, char const *argv[])
 
 int compare_vectr_by_num(vector<int> a, vector<int> b)
 {
-   for (long unsigned int i = 0; i < a.size(); ++i) {
+   long unsigned int i = 0;
+   while (i < a.size()) {
       if (a[i] > b[i])
          return 1;
       else if (a[i] < b[i])
          return -1;
+      ++i;
    }
    return 0;
 }
 
-void split2groups(vector<Server> &G, vector<vector<int>> &groups,
+void split2groups(vector<Server> G, vector<vector<int>> &groups,
                   vector<vector<int>> &a_neighbour_groups, int servers_num)
 
 {
@@ -156,7 +158,6 @@ void split2groups(vector<Server> &G, vector<vector<int>> &groups,
    int current_max;
    vector<bool> used(servers_num, false);
    for (int num = 0; num < servers_num; ++num) {
-
       for (int i = 0; i < servers_num; ++i) {
          if (used[i])
             continue;
@@ -194,7 +195,7 @@ void split2groups(vector<Server> &G, vector<vector<int>> &groups,
    }
 }
 
-bool group_servers(vector<Server> &A, vector<Server> &B,
+bool group_servers(vector<Server> A, vector<Server> B,
                    vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                    int servers_num)
 {
@@ -226,7 +227,7 @@ bool group_servers(vector<Server> &A, vector<Server> &B,
    return true;
 }
 
-bool validate_mapping(vector<Server> &A, vector<Server> &B, vector<int> &A2B,
+bool validate_mapping(vector<Server> A, vector<Server> B, vector<int> &A2B,
                       int servers_num)
 {
 
@@ -241,7 +242,7 @@ bool validate_mapping(vector<Server> &A, vector<Server> &B, vector<int> &A2B,
    return true;
 }
 
-bool permutation(vector<Server> &A, vector<Server> &B,
+bool permutation(vector<Server> A, vector<Server> B,
                  vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                  int id, vector<int> &A2B, int servers_num)
 {
@@ -272,7 +273,7 @@ bool permutation(vector<Server> &A, vector<Server> &B,
    return false;
 }
 
-bool is_isomorfism(vector<Server> &A, vector<Server> &B, int servers_num)
+bool is_isomorfism(vector<Server> A, vector<Server> B, int servers_num)
 {
    bool result = true;
    vector<vector<int>> a_groups(servers_num * 3);
