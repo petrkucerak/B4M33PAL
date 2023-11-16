@@ -35,13 +35,11 @@ int compare_vectr_by_num(vector<int> a, vector<int> b)
 void split2groups(vector<Server> &G, vector<vector<int>> &groups,
                   vector<vector<int>> &a_neighbour_groups, int servers_num)
 {
-   int num = 0;
-   int slow_index = 0;
-   int fast_index = servers_num;
+   int normal_id = 0;
+   int fast_id = servers_num;
    int current_max;
    vector<bool> used(servers_num, false);
-   // TODO: use for insted
-   while (num < servers_num) {
+   for (int num = 0; num < servers_num; ++num) {
 
       for (int i = 0; i < servers_num; ++i) {
          if (used[i])
@@ -58,26 +56,25 @@ void split2groups(vector<Server> &G, vector<vector<int>> &groups,
          }
       }
       if (G[current_max].is_fast) {
-         if (groups[fast_index].empty() ||
-             compare_vectr_by_num(a_neighbour_groups[groups[fast_index][0]],
+         if (groups[fast_id].empty() ||
+             compare_vectr_by_num(a_neighbour_groups[groups[fast_id][0]],
                                   a_neighbour_groups[current_max]) == 0) {
-            groups[fast_index].push_back(current_max);
+            groups[fast_id].push_back(current_max);
          } else {
-            fast_index++;
-            groups[fast_index].push_back(current_max);
+            fast_id++;
+            groups[fast_id].push_back(current_max);
          }
       } else {
-         if (groups[slow_index].empty() ||
-             compare_vectr_by_num(a_neighbour_groups[groups[slow_index][0]],
+         if (groups[normal_id].empty() ||
+             compare_vectr_by_num(a_neighbour_groups[groups[normal_id][0]],
                                   a_neighbour_groups[current_max]) == 0) {
-            groups[slow_index].push_back(current_max);
+            groups[normal_id].push_back(current_max);
          } else {
-            slow_index++;
-            groups[slow_index].push_back(current_max);
+            normal_id++;
+            groups[normal_id].push_back(current_max);
          }
       }
       used[current_max] = true;
-      num++;
    }
 }
 
@@ -134,7 +131,6 @@ bool permutation(vector<Server> &A, vector<Server> &B,
 {
    vector<int> loc_A_group = a_groups[id];
    vector<int> loc_B_group = b_groups[id];
-   // TODO: change to for
    while (loc_A_group.empty() && id + 1 < a_groups.size()) {
       id++;
       loc_A_group = a_groups[id];
