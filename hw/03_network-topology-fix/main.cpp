@@ -153,7 +153,7 @@ void split2groups(vector<Server> &G, vector<vector<int>> &groups,
                   vector<vector<int>> &a_neighbour_groups, int servers_num)
 
 {
-   const int COMPARE_LESS = -1;
+   // const int COMPARE_LESS = -1; // unused
    const int COMPARE_EQUAL = 0;
    const int COMPARE_GREATER = 1;
    int normal_id = 0;
@@ -244,14 +244,15 @@ bool permutation(vector<Server> &A, vector<Server> &B,
 {
    vector<int> loc_A_group = a_groups[id];
    vector<int> loc_B_group = b_groups[id];
-   while (loc_A_group.empty() && id + 1 < a_groups.size()) {
+   while (loc_A_group.empty() &&
+          (long unsigned int)(id + 1) < a_groups.size()) {
       id++;
       loc_A_group = a_groups[id];
       loc_B_group = b_groups[id];
    }
-   if (id + 1 >= a_groups.size()) {
+   if ((long unsigned int)(id + 1) >= a_groups.size()) {
       do {
-         for (int i = 0; i < loc_A_group.size(); ++i) {
+         for (int i = 0; (long unsigned int)i < loc_A_group.size(); ++i) {
             A2B[loc_A_group[i]] = loc_B_group[i];
          }
          if (validate_mapping(A, B, A2B, servers_num))
@@ -259,7 +260,7 @@ bool permutation(vector<Server> &A, vector<Server> &B,
       } while (next_permutation(loc_A_group.begin(), loc_A_group.end()));
    } else {
       do {
-         for (int i = 0; i < loc_A_group.size(); ++i) {
+         for (long unsigned int i = 0; i < loc_A_group.size(); ++i) {
             A2B[loc_A_group[i]] = loc_B_group[i];
          }
          if (permutation(A, B, a_groups, b_groups, id + 1, A2B, servers_num))
