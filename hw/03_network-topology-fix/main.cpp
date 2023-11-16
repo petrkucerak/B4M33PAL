@@ -21,154 +21,22 @@ void print_network(vector<Server> servers)
    }
 }
 
-int compare_vectr_by_num(vector<int> a, vector<int> b)
-{
-   for (int i = 0; i < a.size(); ++i) {
-      if (a[i] > b[i])
-         return 1;
-      else if (a[i] < b[i])
-         return -1;
-   }
-   return 0;
-}
-
+int compare_vectr_by_num(vector<int> a, vector<int> b);
 void split2groups(vector<Server> &G, vector<vector<int>> &groups,
-                  vector<vector<int>> &a_neighbour_groups, int servers_num)
-{
-   int normal_id = 0;
-   int fast_id = servers_num;
-   int current_max;
-   vector<bool> used(servers_num, false);
-   for (int num = 0; num < servers_num; ++num) {
-
-      for (int i = 0; i < servers_num; ++i) {
-         if (used[i])
-            continue;
-         current_max = i;
-         break;
-      }
-      for (int i = 0; i < servers_num; ++i) {
-         if (used[i])
-            continue;
-         if (compare_vectr_by_num(a_neighbour_groups[i],
-                                  a_neighbour_groups[current_max]) == 1) {
-            current_max = i;
-         }
-      }
-      if (G[current_max].is_fast) {
-         if (groups[fast_id].empty() ||
-             compare_vectr_by_num(a_neighbour_groups[groups[fast_id][0]],
-                                  a_neighbour_groups[current_max]) == 0) {
-            groups[fast_id].push_back(current_max);
-         } else {
-            fast_id++;
-            groups[fast_id].push_back(current_max);
-         }
-      } else {
-         if (groups[normal_id].empty() ||
-             compare_vectr_by_num(a_neighbour_groups[groups[normal_id][0]],
-                                  a_neighbour_groups[current_max]) == 0) {
-            groups[normal_id].push_back(current_max);
-         } else {
-            normal_id++;
-            groups[normal_id].push_back(current_max);
-         }
-      }
-      used[current_max] = true;
-   }
-}
+                  vector<vector<int>> &a_neighbour_groups, int servers_num);
 
 bool group_servers(vector<Server> &A, vector<Server> &B,
                    vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
-                   int servers_num)
-{
-   vector<vector<int>> a_neighbour_groups(servers_num,
-                                          vector<int>(servers_num, 0));
-   vector<vector<int>> b_neighbour_groups(servers_num,
-                                          vector<int>(servers_num, 0));
-   for (int i = 0; i < servers_num; ++i) {
-      for (auto a : A[i].target)
-         a_neighbour_groups[i][A[a].target.size()]++;
-      for (auto b : B[i].target)
-         b_neighbour_groups[i][B[b].target.size()]++;
-   }
-
-   // Split into groups
-   split2groups(A, a_groups, a_neighbour_groups, servers_num);
-   split2groups(B, b_groups, b_neighbour_groups, servers_num);
-
-   for (int i = 0; i < a_groups.size(); ++i) {
-      if (a_groups[i].size() != b_groups[i].size())
-         return false;
-   }
-   // sort A subnetworks
-   for (vector<int> a_group : a_groups)
-      sort(a_group.begin(), a_group.end());
-   // sort B subnetworks
-   for (vector<int> b_group : b_groups)
-      sort(b_group.begin(), b_group.end());
-   return true;
-}
+                   int servers_num);
 
 bool validate_mapping(vector<Server> &A, vector<Server> &B, vector<int> &A2B,
-                      int servers_num)
-{
-
-   for (int a_source = 0; a_source < servers_num; ++a_source) {
-      for (int a_targe : A[a_source].target) {
-         if (B[A2B[a_source]].target.find(A2B[a_targe]) ==
-             B[A2B[a_source]].target.end()) {
-            return false;
-         }
-      }
-   }
-   return true;
-}
+                      int servers_num);
 
 bool permutation(vector<Server> &A, vector<Server> &B,
                  vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
-                 int id, vector<int> &A2B, int servers_num)
-{
-   vector<int> loc_A_group = a_groups[id];
-   vector<int> loc_B_group = b_groups[id];
-   while (loc_A_group.empty() && id + 1 < a_groups.size()) {
-      id++;
-      loc_A_group = a_groups[id];
-      loc_B_group = b_groups[id];
-   }
-   if (id + 1 >= a_groups.size()) {
-      do {
-         for (int i = 0; i < loc_A_group.size(); ++i) {
-            A2B[loc_A_group[i]] = loc_B_group[i];
-         }
-         if (validate_mapping(A, B, A2B, servers_num))
-            return true;
-      } while (next_permutation(loc_A_group.begin(), loc_A_group.end()));
-   } else {
-      do {
-         for (int i = 0; i < loc_A_group.size(); ++i) {
-            A2B[loc_A_group[i]] = loc_B_group[i];
-         }
-         if (permutation(A, B, a_groups, b_groups, id + 1, A2B, servers_num))
-            return true;
-      } while (next_permutation(loc_A_group.begin(), loc_A_group.end()));
-   }
-   return false;
-}
+                 int id, vector<int> &A2B, int servers_num);
 
-bool is_isomorfism(vector<Server> &A, vector<Server> &B, int servers_num)
-{
-   bool result = true;
-   vector<vector<int>> a_groups(servers_num * 3);
-   vector<vector<int>> b_groups(servers_num * 3);
-
-   result &= group_servers(A, B, a_groups, b_groups, servers_num);
-   if (!result)
-      return false;
-   vector<int> A2B(servers_num);
-   result &= permutation(A, B, a_groups, b_groups, 0, A2B, servers_num);
-   return result;
-}
+bool is_isomorfism(vector<Server> &A, vector<Server> &B, int servers_num);
 
 int main(int argc, char const *argv[])
 {
@@ -266,4 +134,154 @@ int main(int argc, char const *argv[])
    }
 
    return 0;
+}
+
+int compare_vectr_by_num(vector<int> a, vector<int> b)
+{
+   for (long unsigned int i = 0; i < a.size(); ++i) {
+      if (a[i] > b[i])
+         return 1;
+      else if (a[i] < b[i])
+         return -1;
+   }
+   return 0;
+}
+
+void split2groups(vector<Server> &G, vector<vector<int>> &groups,
+                  vector<vector<int>> &a_neighbour_groups, int servers_num)
+
+{
+   int normal_id = 0;
+   int fast_id = servers_num;
+   int current_max;
+   vector<bool> used(servers_num, false);
+   for (int num = 0; num < servers_num; ++num) {
+
+      for (int i = 0; i < servers_num; ++i) {
+         if (used[i])
+            continue;
+         current_max = i;
+         break;
+      }
+      for (int i = 0; i < servers_num; ++i) {
+         if (used[i])
+            continue;
+         if (compare_vectr_by_num(a_neighbour_groups[i],
+                                  a_neighbour_groups[current_max]) == 1) {
+            current_max = i;
+         }
+      }
+      if (G[current_max].is_fast) {
+         if (groups[fast_id].empty() ||
+             compare_vectr_by_num(a_neighbour_groups[groups[fast_id][0]],
+                                  a_neighbour_groups[current_max]) == 0) {
+            groups[fast_id].push_back(current_max);
+         } else {
+            fast_id++;
+            groups[fast_id].push_back(current_max);
+         }
+      } else {
+         if (groups[normal_id].empty() ||
+             compare_vectr_by_num(a_neighbour_groups[groups[normal_id][0]],
+                                  a_neighbour_groups[current_max]) == 0) {
+            groups[normal_id].push_back(current_max);
+         } else {
+            normal_id++;
+            groups[normal_id].push_back(current_max);
+         }
+      }
+      used[current_max] = true;
+   }
+}
+
+bool group_servers(vector<Server> &A, vector<Server> &B,
+                   vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
+                   int servers_num)
+{
+   vector<vector<int>> a_neighbour_groups(servers_num,
+                                          vector<int>(servers_num, 0));
+   vector<vector<int>> b_neighbour_groups(servers_num,
+                                          vector<int>(servers_num, 0));
+   for (int i = 0; i < servers_num; ++i) {
+      for (auto a : A[i].target)
+         a_neighbour_groups[i][A[a].target.size()]++;
+      for (auto b : B[i].target)
+         b_neighbour_groups[i][B[b].target.size()]++;
+   }
+
+   // Split into groups
+   split2groups(A, a_groups, a_neighbour_groups, servers_num);
+   split2groups(B, b_groups, b_neighbour_groups, servers_num);
+
+   for (long unsigned int i = 0; i < a_groups.size(); ++i) {
+      if (a_groups[i].size() != b_groups[i].size())
+         return false;
+   }
+   // sort A subnetworks
+   for (vector<int> a_group : a_groups)
+      sort(a_group.begin(), a_group.end());
+   // sort B subnetworks
+   for (vector<int> b_group : b_groups)
+      sort(b_group.begin(), b_group.end());
+   return true;
+}
+
+bool validate_mapping(vector<Server> &A, vector<Server> &B, vector<int> &A2B,
+                      int servers_num)
+{
+
+   for (int a_source = 0; a_source < servers_num; ++a_source) {
+      for (int a_targe : A[a_source].target) {
+         if (B[A2B[a_source]].target.find(A2B[a_targe]) ==
+             B[A2B[a_source]].target.end()) {
+            return false;
+         }
+      }
+   }
+   return true;
+}
+
+bool permutation(vector<Server> &A, vector<Server> &B,
+                 vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
+                 int id, vector<int> &A2B, int servers_num)
+{
+   vector<int> loc_A_group = a_groups[id];
+   vector<int> loc_B_group = b_groups[id];
+   while (loc_A_group.empty() && id + 1 < a_groups.size()) {
+      id++;
+      loc_A_group = a_groups[id];
+      loc_B_group = b_groups[id];
+   }
+   if (id + 1 >= a_groups.size()) {
+      do {
+         for (int i = 0; i < loc_A_group.size(); ++i) {
+            A2B[loc_A_group[i]] = loc_B_group[i];
+         }
+         if (validate_mapping(A, B, A2B, servers_num))
+            return true;
+      } while (next_permutation(loc_A_group.begin(), loc_A_group.end()));
+   } else {
+      do {
+         for (int i = 0; i < loc_A_group.size(); ++i) {
+            A2B[loc_A_group[i]] = loc_B_group[i];
+         }
+         if (permutation(A, B, a_groups, b_groups, id + 1, A2B, servers_num))
+            return true;
+      } while (next_permutation(loc_A_group.begin(), loc_A_group.end()));
+   }
+   return false;
+}
+
+bool is_isomorfism(vector<Server> &A, vector<Server> &B, int servers_num)
+{
+   bool result = true;
+   vector<vector<int>> a_groups(servers_num * 3);
+   vector<vector<int>> b_groups(servers_num * 3);
+
+   result &= group_servers(A, B, a_groups, b_groups, servers_num);
+   if (!result)
+      return false;
+   vector<int> A2B(servers_num);
+   result &= permutation(A, B, a_groups, b_groups, 0, A2B, servers_num);
+   return result;
 }
