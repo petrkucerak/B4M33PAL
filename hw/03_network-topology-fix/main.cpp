@@ -22,21 +22,21 @@ void print_network(vector<Server> servers)
 }
 
 int compare_vectr_by_num(vector<int> a, vector<int> b);
-void split2groups(vector<Server> G, vector<vector<int>> &groups,
+void split2groups(vector<Server> &G, vector<vector<int>> &groups,
                   vector<vector<int>> &a_neighbour_groups, int servers_num);
 
-bool group_servers(vector<Server> A, vector<Server> B,
+bool group_servers(vector<Server> &A, vector<Server> &B,
                    vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                    int servers_num);
 
-bool validate_mapping(vector<Server> A, vector<Server> B, vector<int> &A2B,
+bool validate_mapping(vector<Server> &A, vector<Server> &B, vector<int> &A2B,
                       int servers_num);
 
-bool permutation(vector<Server> A, vector<Server> B,
+bool permutation(vector<Server> &A, vector<Server> &B,
                  vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                  int id, vector<int> &A2B, int servers_num);
 
-bool is_isomorfism(vector<Server> A, vector<Server> B, int servers_num);
+bool is_isomorfism(vector<Server> &A, vector<Server> &B, int servers_num);
 
 int main(int argc, char const *argv[])
 {
@@ -149,53 +149,47 @@ int compare_vectr_by_num(vector<int> a, vector<int> b)
    return 0;
 }
 
-void split2groups(vector<Server> G, vector<vector<int>> &groups,
+void split2groups(vector<Server> &G, vector<vector<int>> &groups,
                   vector<vector<int>> &a_neighbour_groups, int servers_num)
 
 {
+   const int COMPARE_LESS = -1;
+   const int COMPARE_EQUAL = 0;
+   const int COMPARE_GREATER = 1;
    int normal_id = 0;
    int fast_id = servers_num;
-   int current_max;
-   vector<bool> used(servers_num, false);
-   for (int num = 0; num < servers_num; ++num) {
-      for (int i = 0; i < servers_num; ++i) {
-         if (used[i])
-            continue;
-         current_max = i;
-         break;
+   std::vector<bool> used(servers_num, false);
+   for (int serverIndex = 0; serverIndex < servers_num; ++serverIndex) {
+      auto it = std::find(used.begin(), used.end(), false);
+      if (it == used.end()) {
+         break; // All servers are used
       }
+      int current_max = std::distance(used.begin(), it);
       for (int i = 0; i < servers_num; ++i) {
-         if (used[i])
-            continue;
-         if (compare_vectr_by_num(a_neighbour_groups[i],
-                                  a_neighbour_groups[current_max]) == 1) {
+         if (!used[i] &&
+             compare_vectr_by_num(a_neighbour_groups[i],
+                                  a_neighbour_groups[current_max]) ==
+                 COMPARE_GREATER) {
             current_max = i;
          }
       }
-      if (G[current_max].is_fast) {
-         if (groups[fast_id].empty() ||
-             compare_vectr_by_num(a_neighbour_groups[groups[fast_id][0]],
-                                  a_neighbour_groups[current_max]) == 0) {
-            groups[fast_id].push_back(current_max);
-         } else {
-            fast_id++;
-            groups[fast_id].push_back(current_max);
-         }
+      int &current_id = G[current_max].is_fast ? fast_id : normal_id;
+      auto &current_group = groups[current_id];
+
+      if (current_group.empty() ||
+          compare_vectr_by_num(a_neighbour_groups[current_group[0]],
+                               a_neighbour_groups[current_max]) ==
+              COMPARE_EQUAL) {
+         current_group.push_back(current_max);
       } else {
-         if (groups[normal_id].empty() ||
-             compare_vectr_by_num(a_neighbour_groups[groups[normal_id][0]],
-                                  a_neighbour_groups[current_max]) == 0) {
-            groups[normal_id].push_back(current_max);
-         } else {
-            normal_id++;
-            groups[normal_id].push_back(current_max);
-         }
+         current_id++;
+         groups[current_id].push_back(current_max);
       }
       used[current_max] = true;
    }
 }
 
-bool group_servers(vector<Server> A, vector<Server> B,
+bool group_servers(vector<Server> &A, vector<Server> &B,
                    vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                    int servers_num)
 {
@@ -227,22 +221,24 @@ bool group_servers(vector<Server> A, vector<Server> B,
    return true;
 }
 
-bool validate_mapping(vector<Server> A, vector<Server> B, vector<int> &A2B,
+bool validate_mapping(vector<Server> &A, vector<Server> &B, vector<int> &A2B,
                       int servers_num)
 {
 
    for (int a_source = 0; a_source < servers_num; ++a_source) {
-      for (int a_targe : A[a_source].target) {
-         if (B[A2B[a_source]].target.find(A2B[a_targe]) ==
-             B[A2B[a_source]].target.end()) {
+      auto &a_source_targets = A[a_source].target;
+      auto &b_source_targets = B[A2B[a_source]].target;
+      for (int a_target : a_source_targets) {
+         if (b_source_targets.find(A2B[a_target]) == b_source_targets.end()) {
             return false;
          }
       }
    }
+
    return true;
 }
 
-bool permutation(vector<Server> A, vector<Server> B,
+bool permutation(vector<Server> &A, vector<Server> &B,
                  vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
                  int id, vector<int> &A2B, int servers_num)
 {
@@ -273,7 +269,7 @@ bool permutation(vector<Server> A, vector<Server> B,
    return false;
 }
 
-bool is_isomorfism(vector<Server> A, vector<Server> B, int servers_num)
+bool is_isomorfism(vector<Server> &A, vector<Server> &B, int servers_num)
 {
    bool result = true;
    vector<vector<int>> a_groups(servers_num * 3);
