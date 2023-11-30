@@ -9,9 +9,9 @@ More formally, CD(S, T) = sum( ES(s, t); s is a substring of S, t is a substring
 
 For example,
 ```
-     S = "010", T = "01".
-     ES(S, T) = 0.
-     CD(S, T) = ES("0", "0") + ES("1", "1") + ES("0", "0") + ES("01", "01") = 1 + 1 + 1 + 2 = 5.
+S = "010", T = "01".
+ES(S, T) = 0.
+CD(S, T) = ES("0", "0") + ES("1", "1") + ES("0", "0") + ES("01", "01") = 1 + 1 + 1 + 2 = 5.
 ```
 Here the sum includes only non-zero terms, for better readability. For the same reason we write each substring in double quotes.
 Note that the pair of substrings ("0", "0") appears twice in the sum, the elements in the first pair in the sum are the first character in S and the first character in T, the elements in the third pair in the sum are the third character in S and the first character in T.
