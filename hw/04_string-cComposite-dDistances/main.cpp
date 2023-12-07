@@ -118,22 +118,25 @@ int main(int argc, char const *argv[])
    string s_pattern;
    string t_pattern;
 
+   s_pattern.reserve(s_length);
    for (int i = 0; i < s_length; ++i) {
       char n;
       if (scanf("%c", &n) != 1) {
          fprintf(stderr, "Can't load S string!\n");
          exit(EXIT_FAILURE);
       }
-      s_pattern.append(sizeof(char), n);
+      s_pattern.push_back(n);
    }
    scanf("\n");
+
+   t_pattern.reserve(t_length);
    for (int i = 0; i < t_length; ++i) {
       char n;
       if (scanf("%c", &n) != 1) {
          fprintf(stderr, "Can't load T string!\n");
          exit(EXIT_FAILURE);
       }
-      t_pattern.append(sizeof(char), n);
+      t_pattern.push_back(n);
    }
 
    Node *root = new Node;
