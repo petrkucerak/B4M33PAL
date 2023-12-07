@@ -174,7 +174,7 @@ int main(int argc, char const *argv[])
    // Calcule RCD
    long int RDC = 0;
    for (int lenght = length_min; lenght <= length_max; ++lenght) {
-      for (int id = 0; id <= s_length - lenght; ++id) {
+      for (int id = 0; id <= t_length - lenght; ++id) {
          Node *tmp = find(root, t_pattern.substr(id, lenght));
          if (tmp != NULL) {
             // cout << t_pattern.substr(id, lenght) << endl;
