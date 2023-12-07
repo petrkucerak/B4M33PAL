@@ -1,9 +1,12 @@
+#include <chrono>
 #include <iostream>
 #include <string>
 
 #define TYPE_0 0
 #define TYPE_1 1
 #define TYPE_ROOT 2
+
+#define MEASURE_TIME
 
 #define CHILD_0 root->add[0]
 #define CHILD_1 root->add[1]
@@ -109,6 +112,11 @@ void delete_trie(Node **root)
 
 int main(int argc, char const *argv[])
 {
+
+#ifdef MEASURE_TIME
+   auto start = chrono::high_resolution_clock::now();
+#endif
+
    int s_length, t_length, length_min, length_max;
    if (scanf("%d %d %d %d\n", &s_length, &t_length, &length_min, &length_max) !=
        4) {
@@ -139,6 +147,10 @@ int main(int argc, char const *argv[])
       t_pattern.push_back(n);
    }
 
+#ifdef MEASURE_TIME
+   auto load_data = chrono::high_resolution_clock::now();
+#endif
+
    Node *root = new Node;
    root->depth = 0;
    root->type = TYPE_ROOT;
@@ -166,6 +178,10 @@ int main(int argc, char const *argv[])
       build_trie(root->add[1], s_pattern, "1", length_max, length_min);
    }
 
+#ifdef MEASURE_TIME
+   auto created_trie = chrono::high_resolution_clock::now();
+#endif
+
    // Calcule RCD
    long int RDC = 0;
    for (int lenght = length_min; lenght <= length_max; ++lenght) {
@@ -185,7 +201,28 @@ int main(int argc, char const *argv[])
 
    printf("%ld %d %d\n", RDC, leaf_count, global_depth);
 
+#ifdef MEASURE_TIME
+   auto print_results = chrono::high_resolution_clock::now();
+#endif
+
    delete_trie(&root);
 
+#ifdef MEASURE_TIME
+   auto end = chrono::high_resolution_clock::now();
+
+   auto loading_data_time =
+       chrono::duration_cast<chrono::microseconds>(load_data - start);
+   auto creating_trie_time =
+       chrono::duration_cast<chrono::microseconds>(created_trie - load_data);
+   auto get_RCD = chrono::duration_cast<chrono::microseconds>(print_results -
+                                                              created_trie);
+   auto free_memory =
+       chrono::duration_cast<chrono::microseconds>(end - print_results);
+   cout << "Time taken by function: " << endl;
+   cout << loading_data_time.count() << endl;
+   cout << creating_trie_time.count() << endl;
+   cout << get_RCD.count() << endl;
+   cout << free_memory.count() << endl;
+#endif
    return 0;
 }
