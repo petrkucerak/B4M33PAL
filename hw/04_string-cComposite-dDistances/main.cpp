@@ -10,6 +10,10 @@
 
 using namespace std;
 
+// TODO: Improvement could be remove unused variables, like that depth,
+// s_pattern size os possible for using to or remove type, because type is
+// determine by parrent pointer, remove loading S as a array
+
 struct Node {
    uint8_t type;
    Node *add[2];
@@ -30,38 +34,38 @@ int count_occurrences(const string &str, const string &sub)
    return count;
 }
 
-void build_trie(Node *root, string pattern, string path, const int max_depth,
+void build_trie(Node *root, string s_pattern, string path, const int max_depth,
                 const int min_depth)
 {
    if (root->depth < max_depth) {
       bool is_leaf = true;
       string path_0 = path;
       path_0.append(sizeof(char), '0');
-      if (pattern.find(path_0) != string::npos) {
+      if (s_pattern.find(path_0) != string::npos) {
          CHILD_0 = new Node;
          CHILD_0->type = TYPE_0;
          CHILD_0->depth = root->depth + 1;
 
-         // calcule occurrence of pattern
+         // calcule occurrence of s_pattern
          if (path_0.size() >= min_depth)
-            CHILD_0->occurrence = count_occurrences(pattern, path_0);
+            CHILD_0->occurrence = count_occurrences(s_pattern, path_0);
 
-         build_trie(CHILD_0, pattern, path_0, max_depth, min_depth);
+         build_trie(CHILD_0, s_pattern, path_0, max_depth, min_depth);
          is_leaf = false;
       }
 
       string path_1 = path;
       path_1.append(sizeof(char), '1');
-      if (pattern.find(path_1) != string::npos) {
+      if (s_pattern.find(path_1) != string::npos) {
          CHILD_1 = new Node;
          CHILD_1->type = TYPE_1;
          CHILD_1->depth = root->depth + 1;
 
-         // calcule occurrence of pattern
+         // calcule occurrence of s_pattern
          if (path_1.size() >= min_depth)
-            CHILD_1->occurrence = count_occurrences(pattern, path_1);
+            CHILD_1->occurrence = count_occurrences(s_pattern, path_1);
 
-         build_trie(CHILD_1, pattern, path_1, max_depth, min_depth);
+         build_trie(CHILD_1, s_pattern, path_1, max_depth, min_depth);
          is_leaf = false;
       }
       if (is_leaf) {
@@ -77,6 +81,18 @@ void build_trie(Node *root, string pattern, string path, const int max_depth,
       ++leaf_count;
       global_depth += root->depth;
    }
+}
+
+Node *find(Node *root, const string key)
+{
+   Node *tmp = root;
+   for (int i = 0; i < key.size(); ++i) {
+      if (tmp->add[int(key[i] - 48)] != NULL)
+         tmp = tmp->add[int(key[i] - 48)];
+      else
+         return NULL;
+   }
+   return tmp;
 }
 
 void delete_trie(Node **root)
@@ -105,7 +121,8 @@ int main(int argc, char const *argv[])
    }
    int *S = new int[s_length];
    int *T = new int[t_length];
-   string pattern;
+   string s_pattern;
+   string t_pattern;
 
    for (int i = 0; i < s_length; ++i) {
       char n;
@@ -113,7 +130,7 @@ int main(int argc, char const *argv[])
          fprintf(stderr, "Can't load S string!\n");
          exit(EXIT_FAILURE);
       }
-      pattern.append(sizeof(char), n);
+      s_pattern.append(sizeof(char), n);
       S[i] = int(n) - 48;
    }
    scanf("\n");
@@ -123,38 +140,55 @@ int main(int argc, char const *argv[])
          fprintf(stderr, "Can't load T string!\n");
          exit(EXIT_FAILURE);
       }
+      t_pattern.append(sizeof(char), n);
       T[i] = int(n) - 48;
    }
 
    Node *root = new Node;
    root->depth = 0;
    root->type = TYPE_ROOT;
-   if (pattern.find("0") != string::npos) {
+   if (s_pattern.find("0") != string::npos) {
       root->add[0] = new Node;
       root->add[0]->type = TYPE_0;
       root->add[0]->depth = root->depth + 1;
 
-      // calcule occurrence of pattern
+      // calcule occurrence of s_pattern
       if (length_min <= 1)
-         CHILD_0->occurrence = count_occurrences(pattern, "0");
+         CHILD_0->occurrence = count_occurrences(s_pattern, "0");
 
-      build_trie(root->add[0], pattern, "0", length_max, length_min);
+      build_trie(root->add[0], s_pattern, "0", length_max, length_min);
    }
 
-   if (pattern.find("1") != string::npos) {
+   if (s_pattern.find("1") != string::npos) {
       root->add[1] = new Node;
       root->add[1]->type = TYPE_1;
       root->add[1]->depth = root->depth + 1;
 
-      // calcule occurrence of pattern
+      // calcule occurrence of s_pattern
       if (length_min <= 1)
-         CHILD_1->occurrence = count_occurrences(pattern, "1");
+         CHILD_1->occurrence = count_occurrences(s_pattern, "1");
 
-      build_trie(root->add[1], pattern, "1", length_max, length_min);
+      build_trie(root->add[1], s_pattern, "1", length_max, length_min);
    }
 
-   cout << "Leaf count: " << leaf_count << endl;
-   cout << "Global depth: " << global_depth << endl;
+   // Calcule RCD
+   long int RDC = 0;
+   for (int lenght = length_min; lenght <= length_max; ++lenght) {
+      for (int id = 0; id <= s_length - lenght; ++id) {
+         Node *tmp = find(root, t_pattern.substr(id, lenght));
+         if (tmp != NULL) {
+            // cout << t_pattern.substr(id, lenght) << endl;
+            RDC += (tmp->depth * tmp->occurrence);
+         }
+      }
+   }
+
+   // cout << endl;
+   // cout << "RDC: " << RDC << endl;
+   // cout << "Leaf count: " << leaf_count << endl;
+   // cout << "Global depth: " << global_depth << endl;
+
+   printf("%ld %d %d\n", RDC, leaf_count, global_depth);
 
    delete_trie(&root);
 
