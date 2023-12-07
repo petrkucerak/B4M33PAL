@@ -126,15 +126,6 @@ int main(int argc, char const *argv[])
       T[i] = int(n) - 48;
    }
 
-   // Print S array
-   // for (int i = 0; i < s_length; ++i)
-   //    printf("%d", S[i]);
-   // printf("\n");
-   // // Print T array
-   // for (int i = 0; i < t_length; ++i)
-   //    printf("%d", T[i]);
-   // printf("\n\n");
-
    Node *root = new Node;
    root->depth = 0;
    root->type = TYPE_ROOT;
