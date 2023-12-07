@@ -5,18 +5,30 @@
 #define TYPE_1 1
 #define TYPE_ROOT 2
 
+#define CHILD_0 root->add[0]
+#define CHILD_1 root->add[1]
+
 using namespace std;
 
 struct Node {
    uint8_t type;
    Node *add[2];
    int depth;
+   int occurrence;
 
-   Node() : type(0), add{NULL, NULL}, depth(0) {}
+   Node() : type(0), add{NULL, NULL}, depth(0), occurrence(0) {}
 };
 
 int global_depth = 0;
 int leaf_count = 0;
+
+int count_occurrences(const string &str, const string &sub)
+{
+   int count = 0;
+   for (int pos = 0; (pos = str.find(sub, pos)) != string::npos; ++pos, ++count)
+      ;
+   return count;
+}
 
 void build_trie(Node *root, string pattern, string path, const int max_depth,
                 const int min_depth)
@@ -26,20 +38,30 @@ void build_trie(Node *root, string pattern, string path, const int max_depth,
       string path_0 = path;
       path_0.append(sizeof(char), '0');
       if (pattern.find(path_0) != string::npos) {
-         root->add[0] = new Node;
-         root->add[0]->type = TYPE_0;
-         root->add[0]->depth = root->depth + 1;
-         build_trie(root->add[0], pattern, path_0, max_depth, min_depth);
+         CHILD_0 = new Node;
+         CHILD_0->type = TYPE_0;
+         CHILD_0->depth = root->depth + 1;
+
+         // calcule occurrence of pattern
+         if (path_0.size() >= min_depth)
+            CHILD_0->occurrence = count_occurrences(pattern, path_0);
+
+         build_trie(CHILD_0, pattern, path_0, max_depth, min_depth);
          is_leaf = false;
       }
 
       string path_1 = path;
       path_1.append(sizeof(char), '1');
       if (pattern.find(path_1) != string::npos) {
-         root->add[1] = new Node;
-         root->add[1]->type = TYPE_1;
-         root->add[1]->depth = root->depth + 1;
-         build_trie(root->add[1], pattern, path_1, max_depth, min_depth);
+         CHILD_1 = new Node;
+         CHILD_1->type = TYPE_1;
+         CHILD_1->depth = root->depth + 1;
+
+         // calcule occurrence of pattern
+         if (path_1.size() >= min_depth)
+            CHILD_1->occurrence = count_occurrences(pattern, path_1);
+
+         build_trie(CHILD_1, pattern, path_1, max_depth, min_depth);
          is_leaf = false;
       }
       if (is_leaf) {
@@ -120,6 +142,11 @@ int main(int argc, char const *argv[])
       root->add[0] = new Node;
       root->add[0]->type = TYPE_0;
       root->add[0]->depth = root->depth + 1;
+
+      // calcule occurrence of pattern
+      if (length_min <= 1)
+         CHILD_0->occurrence = count_occurrences(pattern, "0");
+
       build_trie(root->add[0], pattern, "0", length_max, length_min);
    }
 
@@ -127,6 +154,11 @@ int main(int argc, char const *argv[])
       root->add[1] = new Node;
       root->add[1]->type = TYPE_1;
       root->add[1]->depth = root->depth + 1;
+
+      // calcule occurrence of pattern
+      if (length_min <= 1)
+         CHILD_1->occurrence = count_occurrences(pattern, "1");
+
       build_trie(root->add[1], pattern, "1", length_max, length_min);
    }
 
