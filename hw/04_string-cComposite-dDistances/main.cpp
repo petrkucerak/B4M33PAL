@@ -119,8 +119,6 @@ int main(int argc, char const *argv[])
       fprintf(stderr, "Can't load metadata!\n");
       exit(EXIT_FAILURE);
    }
-   int *S = new int[s_length];
-   int *T = new int[t_length];
    string s_pattern;
    string t_pattern;
 
@@ -131,7 +129,6 @@ int main(int argc, char const *argv[])
          exit(EXIT_FAILURE);
       }
       s_pattern.append(sizeof(char), n);
-      S[i] = int(n) - 48;
    }
    scanf("\n");
    for (int i = 0; i < t_length; ++i) {
@@ -141,7 +138,6 @@ int main(int argc, char const *argv[])
          exit(EXIT_FAILURE);
       }
       t_pattern.append(sizeof(char), n);
-      T[i] = int(n) - 48;
    }
 
    Node *root = new Node;
@@ -191,9 +187,6 @@ int main(int argc, char const *argv[])
    printf("%ld %d %d\n", RDC, leaf_count, global_depth);
 
    delete_trie(&root);
-
-   delete[] S;
-   delete[] T;
 
    return 0;
 }
