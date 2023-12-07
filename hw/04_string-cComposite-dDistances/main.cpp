@@ -10,10 +10,6 @@
 
 using namespace std;
 
-// TODO: Improvement could be remove unused variables, like that depth,
-// s_pattern size os possible for using to or remove type, because type is
-// determine by parrent pointer, remove loading S as a array
-
 struct Node {
    uint8_t type;
    Node *add[2];
