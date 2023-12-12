@@ -2,6 +2,14 @@
 #include <iostream>
 #include <string>
 
+/**
+ * @todo: There are ides to make code faster:
+ * 1. try use vector insted of string
+ * 2. remove find function and implement somethink better as continual
+ * combination
+ *
+ */
+
 #define TYPE_0 0
 #define TYPE_1 1
 #define TYPE_ROOT 2
