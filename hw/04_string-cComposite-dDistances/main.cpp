@@ -81,7 +81,7 @@ void addPattern(Node *root, const vector<bool> &pattern, int pattern_start,
 
 int main()
 {
-   auto start = chrono::high_resolution_clock::now();
+   // auto start = chrono::high_resolution_clock::now();
 
    // Load data
    int s_length, t_length, length_min, length_max;
@@ -102,7 +102,7 @@ int main()
       t_pattern[i] = (n == '0' ? false : true);
    }
 
-   auto time_1 = chrono::high_resolution_clock::now();
+   // auto time_1 = chrono::high_resolution_clock::now();
 
    // Compute trie
    Node *root = new Node;
@@ -119,7 +119,7 @@ int main()
       }
    }
 
-   auto time_2 = chrono::high_resolution_clock::now();
+   // auto time_2 = chrono::high_resolution_clock::now();
 
    // Compute RDC
    long int RDC = 0;
@@ -135,26 +135,26 @@ int main()
       }
    }
 
-   auto time_3 = chrono::high_resolution_clock::now();
+   // auto time_3 = chrono::high_resolution_clock::now();
 
    // Remove data
    deleteTrie(root);
 
-   auto time_4 = chrono::high_resolution_clock::now();
+   // auto time_4 = chrono::high_resolution_clock::now();
 
    // Output result
    cout << RDC << " " << leaf_count << " " << global_depth << endl;
 
-   auto time_load_data = GET_TIME(time_1 - start);
-   auto time_trie = GET_TIME(time_2 - time_1);
-   auto time_RDC = GET_TIME(time_3 - time_2);
-   auto time_free = GET_TIME(time_4 - time_3);
+   // auto time_load_data = GET_TIME(time_1 - start);
+   // auto time_trie = GET_TIME(time_2 - time_1);
+   // auto time_RDC = GET_TIME(time_3 - time_2);
+   // auto time_free = GET_TIME(time_4 - time_3);
 
-   cout << endl << "Time consumebd by function" << endl;
-   cout << time_load_data.count() << endl;
-   cout << time_trie.count() << endl;
-   cout << time_RDC.count() << endl;
-   cout << time_free.count() << endl;
+   // cout << endl << "Time consumebd by function" << endl;
+   // cout << time_load_data.count() << endl;
+   // cout << time_trie.count() << endl;
+   // cout << time_RDC.count() << endl;
+   // cout << time_free.count() << endl;
 
    return 0;
 }
