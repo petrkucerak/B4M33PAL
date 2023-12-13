@@ -1,5 +1,10 @@
+#include <chrono>
 #include <iostream>
 #include <vector>
+
+using namespace std;
+
+#define GET_TIME chrono::duration_cast<chrono::microseconds>
 
 struct Node {
    bool type;
@@ -33,7 +38,7 @@ void deleteTrie(Node *&root)
 }
 
 // Function to find a node in the trie
-Node *findNode(Node *root, const std::vector<bool> &pattern, int pattern_start,
+Node *findNode(Node *root, const vector<bool> &pattern, int pattern_start,
                int pattern_end)
 {
    Node *tmp = root;
@@ -47,7 +52,7 @@ Node *findNode(Node *root, const std::vector<bool> &pattern, int pattern_start,
 }
 
 // Function to add a pattern to the trie
-void addPattern(Node *root, const std::vector<bool> &pattern, int pattern_start,
+void addPattern(Node *root, const vector<bool> &pattern, int pattern_start,
                 int pattern_end, const int max_depth, const int min_depth,
                 int &leaf_count, int &global_depth)
 {
@@ -75,24 +80,28 @@ void addPattern(Node *root, const std::vector<bool> &pattern, int pattern_start,
 
 int main()
 {
+   auto start = chrono::high_resolution_clock::now();
+
    // Load data
    int s_length, t_length, length_min, length_max;
-   std::cin >> s_length >> t_length >> length_min >> length_max;
+   cin >> s_length >> t_length >> length_min >> length_max;
 
-   std::vector<bool> s_pattern(s_length);
-   std::vector<bool> t_pattern(t_length);
+   vector<bool> s_pattern(s_length);
+   vector<bool> t_pattern(t_length);
 
    for (int i = 0; i < s_length; ++i) {
       char n;
-      std::cin >> n;
+      cin >> n;
       s_pattern[i] = (n == '0' ? false : true);
    }
 
    for (int i = 0; i < t_length; ++i) {
       char n;
-      std::cin >> n;
+      cin >> n;
       t_pattern[i] = (n == '0' ? false : true);
    }
+
+   auto time_1 = chrono::high_resolution_clock::now();
 
    // Compute trie
    Node *root = new Node;
@@ -109,6 +118,8 @@ int main()
       }
    }
 
+   auto time_2 = chrono::high_resolution_clock::now();
+
    // Compute RDC
    long int RDC = 0;
    for (int length = length_min; length <= length_max; ++length) {
@@ -120,11 +131,26 @@ int main()
       }
    }
 
+   auto time_3 = chrono::high_resolution_clock::now();
+
    // Remove data
    deleteTrie(root);
 
+   auto time_4 = chrono::high_resolution_clock::now();
+
    // Output result
-   std::cout << RDC << " " << leaf_count << " " << global_depth << std::endl;
+   cout << RDC << " " << leaf_count << " " << global_depth << endl;
+
+   auto time_load_data = GET_TIME(time_1 - start);
+   auto time_trie = GET_TIME(time_2 - time_1);
+   auto time_RDC = GET_TIME(time_3 - time_2);
+   auto time_free = GET_TIME(time_4 - time_3);
+
+   cout << endl << "Time consumebd by function" << endl;
+   cout << time_load_data.count() << endl;
+   cout << time_trie.count() << endl;
+   cout << time_RDC.count() << endl;
+   cout << time_free.count() << endl;
 
    return 0;
 }
