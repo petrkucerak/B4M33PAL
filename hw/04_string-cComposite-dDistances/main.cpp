@@ -48,10 +48,11 @@ int main()
 
    // auto time_1 = chrono::high_resolution_clock::now();
 
-   // Compute trie
+   // Build trie
    Node *root = new Node;
    int leaf_count = 0;
    int global_depth = 0;
+
    for (int id = 0; id < s_length; ++id) {
       Node *node = root;
       int depth = 0;
@@ -61,14 +62,13 @@ int main()
          string tmp = s_pattern.substr(id, length);
          for (int i = depth; i < tmp.size(); ++i) {
             char curr = tmp[i];
-            if (node->to[curr - 48] == nullptr) {
+            if (node->to[curr - 48] == nullptr)
                node->to[curr - 48] = new Node;
-               node = node->to[curr - 48];
-            }
+            node = node->to[curr - 48];
             ++depth;
          }
+         ++node->occurrence;
       }
-      ++node->occurrence;
    }
 
    // auto time_2 = chrono::high_resolution_clock::now();
@@ -87,12 +87,15 @@ int main()
       }
       if (!is_end) {
          for (int depth = length_min; depth <= length_max; ++depth) {
+            // cout << t_pattern[i + depth] - 48 << endl;
             if (depth + i > t_length)
                continue;
             if (node->occurrence > 0)
                RDC += depth * node->occurrence;
             if (depth == length_max)
                continue;
+            if (i + depth >= t_length)
+               break;
             if (node->to[t_pattern[i + depth] - 48] == nullptr)
                break;
             node = node->to[t_pattern[i + depth] - 48];
