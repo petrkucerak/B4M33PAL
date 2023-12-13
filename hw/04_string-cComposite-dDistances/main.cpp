@@ -7,14 +7,15 @@ using namespace std;
 #define GET_TIME chrono::duration_cast<chrono::microseconds>
 
 struct Node {
-   bool type;
+   // bool type;
    Node *to[2];
    int depth;
    int occurrence;
    bool leaf;
 
    Node()
-       : type(false), to{nullptr, nullptr}, depth(0), occurrence(0), leaf(false)
+       : /*type(false), */ to{nullptr, nullptr}, depth(0), occurrence(0),
+         leaf(false)
    {
    }
 };
@@ -60,7 +61,7 @@ void addPattern(Node *root, const vector<bool> &pattern, int pattern_start,
    if (child == nullptr) {
       child = new Node;
       child->depth = root->depth + 1;
-      child->type = pattern[pattern_start];
+      // child->type = pattern[pattern_start];
    }
    if (pattern_end > pattern_start + 1)
       addPattern(child, pattern, pattern_start + 1, pattern_end, max_depth,
