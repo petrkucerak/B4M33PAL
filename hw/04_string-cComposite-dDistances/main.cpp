@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -7,15 +8,12 @@ using namespace std;
 #define GET_TIME chrono::duration_cast<chrono::microseconds>
 
 struct Node {
-   // bool type;
    Node *to[2];
-   int depth;
    int occurrence;
-   bool leaf;
 
    Node()
-       : /*type(false), */ to{nullptr, nullptr}, depth(0), occurrence(0),
-         leaf(false)
+       : /*type(false), */ to{nullptr, nullptr},
+         /*depth(0),*/ occurrence(0) /*, leaf(false) */
    {
    }
 };
@@ -38,47 +36,6 @@ void deleteTrie(Node *&root)
    root = nullptr;
 }
 
-// Function to find a node in the trie
-Node *findNode(Node *root, const vector<bool> &pattern, int pattern_start,
-               int pattern_end)
-{
-   Node *tmp = root;
-   for (int i = pattern_start; i < pattern_end; ++i) {
-      if (tmp->to[pattern[i]] != nullptr)
-         tmp = tmp->to[pattern[i]];
-      else
-         return nullptr;
-   }
-   return tmp;
-}
-
-// Function to add a pattern to the trie
-void addPattern(Node *root, const vector<bool> &pattern, int pattern_start,
-                int pattern_end, const int max_depth, const int min_depth,
-                int &leaf_count, int &global_depth)
-{
-   Node *&child = root->to[pattern[pattern_start]];
-   if (child == nullptr) {
-      child = new Node;
-      child->depth = root->depth + 1;
-      // child->type = pattern[pattern_start];
-   }
-   if (pattern_end > pattern_start + 1)
-      addPattern(child, pattern, pattern_start + 1, pattern_end, max_depth,
-                 min_depth, leaf_count, global_depth);
-   else {
-      // final stage
-      if (child->depth >= min_depth)
-         child->occurrence += 1;
-      // is leaf?
-      if (!child->leaf && child->to[0] == nullptr && child->to[1] == nullptr) {
-         child->leaf = true;
-         ++leaf_count;
-         global_depth += child->depth;
-      }
-   }
-}
-
 int main()
 {
    // auto start = chrono::high_resolution_clock::now();
@@ -86,53 +43,63 @@ int main()
    // Load data
    int s_length, t_length, length_min, length_max;
    cin >> s_length >> t_length >> length_min >> length_max;
-
-   vector<bool> s_pattern(s_length);
-   vector<bool> t_pattern(t_length);
-
-   for (int i = 0; i < s_length; ++i) {
-      char n;
-      cin >> n;
-      s_pattern[i] = (n == '0' ? false : true);
-   }
-
-   for (int i = 0; i < t_length; ++i) {
-      char n;
-      cin >> n;
-      t_pattern[i] = (n == '0' ? false : true);
-   }
+   string s_pattern, t_pattern;
+   cin >> s_pattern >> t_pattern;
 
    // auto time_1 = chrono::high_resolution_clock::now();
 
    // Compute trie
    Node *root = new Node;
-   root->depth = 0;
    int leaf_count = 0;
    int global_depth = 0;
-   for (int pattern_length = length_max; pattern_length >= length_min;
-        --pattern_length) {
-      for (int pattern_start = 0; pattern_start < s_length + 1 - pattern_length;
-           ++pattern_start) {
-         addPattern(root, s_pattern, pattern_start,
-                    pattern_start + pattern_length, length_max, length_min,
-                    leaf_count, global_depth);
+   for (int id = 0; id < s_length; ++id) {
+      Node *node = root;
+      int depth = 0;
+      for (int length = length_min; length <= length_max; ++length) {
+         if (id + length > s_length)
+            break;
+         string tmp = s_pattern.substr(id, length);
+         for (int i = depth; i < tmp.size(); ++i) {
+            char curr = tmp[i];
+            if (node->to[curr - 48] == nullptr) {
+               node->to[curr - 48] = new Node;
+               node = node->to[curr - 48];
+            }
+            ++depth;
+         }
       }
+      ++node->occurrence;
    }
 
    // auto time_2 = chrono::high_resolution_clock::now();
 
    // Compute RDC
-   long int RDC = 0;
-   for (int id = 0; id <= t_pattern.size() - length_min; ++id) {
-      for (int length = length_min;
-           length <= length_max && id + length < t_pattern.size() + 1;
-           ++length) {
-         Node *tmp = findNode(root, t_pattern, id, id + length);
-         if (tmp != nullptr) {
-            RDC += (tmp->depth * tmp->occurrence);
-         } else
+   int RDC = 0;
+   Node *node = root;
+   bool is_end = false;
+   for (int i = 0; i <= t_length - length_min; ++i) {
+      for (int j = 0; j < length_min; ++j) {
+         if (node->to[t_pattern[i + j] - 48] == nullptr) {
+            is_end = true;
             break;
+         }
+         node = node->to[t_pattern[i + j] - 48];
       }
+      if (!is_end) {
+         for (int depth = length_min; depth <= length_max; ++depth) {
+            if (depth + i > t_length)
+               continue;
+            if (node->occurrence > 0)
+               RDC += depth * node->occurrence;
+            if (depth == length_max)
+               continue;
+            if (node->to[t_pattern[i + depth] - 48] == nullptr)
+               break;
+            node = node->to[t_pattern[i + depth] - 48];
+         }
+      }
+      is_end = false;
+      node = root;
    }
 
    // auto time_3 = chrono::high_resolution_clock::now();
