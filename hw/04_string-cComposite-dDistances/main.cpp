@@ -123,12 +123,15 @@ int main()
 
    // Compute RDC
    long int RDC = 0;
-   for (int length = length_min; length <= length_max; ++length) {
-      for (int id = 0; id <= t_pattern.size() - length; ++id) {
+   for (int id = 0; id <= t_pattern.size() - length_min; ++id) {
+      for (int length = length_min;
+           length <= length_max && id + length < t_pattern.size() + 1;
+           ++length) {
          Node *tmp = findNode(root, t_pattern, id, id + length);
          if (tmp != nullptr) {
             RDC += (tmp->depth * tmp->occurrence);
-         }
+         } else
+            break;
       }
    }
 
