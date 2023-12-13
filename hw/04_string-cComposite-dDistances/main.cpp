@@ -73,22 +73,6 @@ void addPattern(Node *root, const std::vector<bool> &pattern, int pattern_start,
    }
 }
 
-// Function to compute the RDC
-long int computeRDC(Node *root, const std::vector<bool> &t_pattern,
-                    int length_min, int length_max)
-{
-   long int RDC = 0;
-   for (int length = length_min; length <= length_max; ++length) {
-      for (int id = 0; id <= t_pattern.size() - length; ++id) {
-         Node *tmp = findNode(root, t_pattern, id, id + length);
-         if (tmp != nullptr) {
-            RDC += (tmp->depth * tmp->occurrence);
-         }
-      }
-   }
-   return RDC;
-}
-
 int main()
 {
    // Load data
@@ -126,7 +110,15 @@ int main()
    }
 
    // Compute RDC
-   long int RDC = computeRDC(root, t_pattern, length_min, length_max);
+   long int RDC = 0;
+   for (int length = length_min; length <= length_max; ++length) {
+      for (int id = 0; id <= t_pattern.size() - length; ++id) {
+         Node *tmp = findNode(root, t_pattern, id, id + length);
+         if (tmp != nullptr) {
+            RDC += (tmp->depth * tmp->occurrence);
+         }
+      }
+   }
 
    // Remove data
    deleteTrie(root);
