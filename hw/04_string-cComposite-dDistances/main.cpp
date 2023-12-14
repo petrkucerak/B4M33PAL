@@ -36,6 +36,22 @@ void deleteTrie(Node *&root)
    root = nullptr;
 }
 
+void getPrams(Node *node, int depth, int &global_depth, int &leaf_count)
+{
+   // Hanlde leaf
+   if (node->to[0] == nullptr && node->to[1] == nullptr) {
+      if (node->occurrence > 0) {
+         global_depth += depth;
+         ++leaf_count;
+      }
+      return;
+   }
+   if (node->to[0] != nullptr)
+      getPrams(node->to[0], depth + 1, global_depth, leaf_count);
+   if (node->to[1] != nullptr)
+      getPrams(node->to[1], depth + 1, global_depth, leaf_count);
+}
+
 int main()
 {
    // auto start = chrono::high_resolution_clock::now();
@@ -50,8 +66,6 @@ int main()
 
    // Build trie
    Node *root = new Node;
-   int leaf_count = 0;
-   int global_depth = 0;
 
    for (int id = 0; id < s_length; ++id) {
       Node *node = root;
@@ -104,6 +118,10 @@ int main()
       is_end = false;
       node = root;
    }
+   int leaf_count = 0;
+   int global_depth = 0;
+
+   getPrams(root, 0, global_depth, leaf_count);
 
    // auto time_3 = chrono::high_resolution_clock::now();
 
