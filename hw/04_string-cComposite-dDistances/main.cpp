@@ -1,21 +1,14 @@
-#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
 
 using namespace std;
 
-#define GET_TIME chrono::duration_cast<chrono::microseconds>
-
 struct Node {
    Node *to[2];
    int occurrence;
 
-   Node()
-       : /*type(false), */ to{nullptr, nullptr},
-         /*depth(0),*/ occurrence(0) /*, leaf(false) */
-   {
-   }
+   Node() : to{nullptr, nullptr}, occurrence(0) {}
 };
 
 // Function to delete the trie
@@ -54,15 +47,11 @@ void getPrams(Node *node, int depth, int &global_depth, int &leaf_count)
 
 int main()
 {
-   // auto start = chrono::high_resolution_clock::now();
-
    // Load data
    int s_length, t_length, length_min, length_max;
    cin >> s_length >> t_length >> length_min >> length_max;
    string s_pattern, t_pattern;
    cin >> s_pattern >> t_pattern;
-
-   // auto time_1 = chrono::high_resolution_clock::now();
 
    // Build trie
    Node *root = new Node;
@@ -85,8 +74,6 @@ int main()
       }
    }
 
-   // auto time_2 = chrono::high_resolution_clock::now();
-
    // Compute RDC
    int RDC = 0;
    Node *node = root;
@@ -101,7 +88,6 @@ int main()
       }
       if (!is_end) {
          for (int depth = length_min; depth <= length_max; ++depth) {
-            // cout << t_pattern[i + depth] - 48 << endl;
             if (depth + i > t_length)
                continue;
             if (node->occurrence > 0)
@@ -118,31 +104,16 @@ int main()
       is_end = false;
       node = root;
    }
+
    int leaf_count = 0;
    int global_depth = 0;
-
    getPrams(root, 0, global_depth, leaf_count);
-
-   // auto time_3 = chrono::high_resolution_clock::now();
 
    // Remove data
    deleteTrie(root);
 
-   // auto time_4 = chrono::high_resolution_clock::now();
-
    // Output result
    cout << RDC << " " << leaf_count << " " << global_depth << endl;
-
-   // auto time_load_data = GET_TIME(time_1 - start);
-   // auto time_trie = GET_TIME(time_2 - time_1);
-   // auto time_RDC = GET_TIME(time_3 - time_2);
-   // auto time_free = GET_TIME(time_4 - time_3);
-
-   // cout << endl << "Time consumebd by function" << endl;
-   // cout << time_load_data.count() << endl;
-   // cout << time_trie.count() << endl;
-   // cout << time_RDC.count() << endl;
-   // cout << time_free.count() << endl;
 
    return 0;
 }
