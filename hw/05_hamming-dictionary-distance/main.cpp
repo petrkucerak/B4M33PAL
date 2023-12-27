@@ -1,8 +1,21 @@
 #include <iostream>
+#include <queue>
 #include <string>
 #include <vector>
 
 using namespace std;
+
+struct Node {
+   int hd;
+   int distance;
+};
+
+struct CompareDistance {
+   bool operator()(Node const &n1, Node const &n2)
+   {
+      return n1.distance < n2.distance;
+   }
+};
 
 int hammingDistance(string &a, string &b, int b_start)
 {
@@ -27,24 +40,23 @@ int main(int argc, char const *argv[])
    cin >> text;
 
    // Precalcule the HD for all combinations
-   vector<vector<int>> precalculation;
+   vector<vector<Node>> precalculation;
    for (auto &word : dictionary) {
-      vector<int> word_hd;
+      vector<Node> word_hd;
       for (int i = 0; i < text.size() - word.size() + 2; ++i) {
-         word_hd.push_back(hammingDistance(word, text, i));
+         word_hd.push_back({hammingDistance(word, text, i), INT32_MAX});
       }
       precalculation.push_back(word_hd);
    }
 
-   for (auto &word : precalculation) {
-      for (auto &combination : word)
-         cout << combination << " ";
-      cout << endl;
-   }
+   // for (auto &word : precalculation) {
+   //    for (auto &combination : word)
+   //       cout << combination.hd << " ";
+   //    cout << endl;
+   // }
 
-   int best_option = INT32_MAX;
-
-   cout << best_option << endl;
+   priority_queue<Node, vector<Node>, CompareDistance> queue;
+   // Add starting nodes
 
    return 0;
 }
