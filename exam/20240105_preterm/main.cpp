@@ -10,132 +10,11 @@ struct Atom {
    // bool is_fast = false;
 };
 
-int compare_vectr_by_num(vector<int> a, vector<int> b)
-{
-   long unsigned int i = 0;
-   while (i < a.size()) {
-      if (a[i] > b[i])
-         return 1;
-      else if (a[i] < b[i])
-         return -1;
-      ++i;
-   }
-   return 0;
-}
-
-void split2groups(vector<Atom> &G, vector<vector<int>> &groups,
-                  vector<vector<int>> &a_neighbour_groups, int count_atoms)
-
-{
-   // const int COMPARE_LESS = -1; // unused
-   const int COMPARE_EQUAL = 0;
-   const int COMPARE_GREATER = 1;
-   int normal_id = 0;
-   // int fast_id = count_atoms;
-   std::vector<bool> used(count_atoms, false);
-   for (int atomIndex = 0; atomIndex < count_atoms; ++atomIndex) {
-      auto it = std::find(used.begin(), used.end(), false);
-      if (it == used.end()) {
-         break; // All servers are used
-      }
-      int current_max = std::distance(used.begin(), it);
-      for (int i = 0; i < count_atoms; ++i) {
-         if (!used[i] &&
-             compare_vectr_by_num(a_neighbour_groups[i],
-                                  a_neighbour_groups[current_max]) ==
-                 COMPARE_GREATER) {
-            current_max = i;
-         }
-      }
-      int &current_id = /*G[current_max].is_fast ? fast_id : */ normal_id;
-      auto &current_group = groups[current_id];
-
-      if (current_group.empty() ||
-          compare_vectr_by_num(a_neighbour_groups[current_group[0]],
-                               a_neighbour_groups[current_max]) ==
-              COMPARE_EQUAL) {
-         current_group.push_back(current_max);
-      } else {
-         current_id++;
-         groups[current_id].push_back(current_max);
-      }
-      used[current_max] = true;
-   }
-}
-
-bool validate_mapping(vector<Atom> &A, vector<Atom> &B, vector<int> &A2B,
-                      int count_atoms)
-{
-
-   for (int a_source = 0; a_source < count_atoms; ++a_source) {
-      auto &a_source_targets = A[a_source].target;
-      auto &b_source_targets = B[A2B[a_source]].target;
-      for (int a_target : a_source_targets) {
-         if (b_source_targets.find(A2B[a_target]) == b_source_targets.end()) {
-            return false;
-         }
-      }
-   }
-
-   return true;
-}
-
-bool permutation(vector<Atom> &A, vector<Atom> &B,
-                 vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
-                 int id, vector<int> &A2B, int count_atoms)
-{
-   vector<int> loc_A_group = a_groups[id];
-   vector<int> loc_B_group = b_groups[id];
-   while (loc_A_group.empty() &&
-          (long unsigned int)(id + 1) < a_groups.size()) {
-      id++;
-      loc_A_group = a_groups[id];
-      loc_B_group = b_groups[id];
-   }
-   if ((long unsigned int)(id + 1) >= a_groups.size()) {
-      do {
-         for (int i = 0; (long unsigned int)i < loc_A_group.size(); ++i) {
-            A2B[loc_A_group[i]] = loc_B_group[i];
-         }
-         if (validate_mapping(A, B, A2B, count_atoms))
-            return true;
-      } while (next_permutation(loc_A_group.begin(), loc_A_group.end()));
-   } else {
-      do {
-         for (long unsigned int i = 0; i < loc_A_group.size(); ++i) {
-            A2B[loc_A_group[i]] = loc_B_group[i];
-         }
-         if (permutation(A, B, a_groups, b_groups, id + 1, A2B, count_atoms))
-            return true;
-      } while (next_permutation(loc_A_group.begin(), loc_A_group.end()));
-   }
-   return false;
-}
-
-bool is_isomorfism(vector<Atom> &A, vector<Atom> &B,
-                   vector<vector<int>> &a_groups, vector<vector<int>> &b_groups,
-                   int count_atoms)
+bool is_isomorfism(vector<Atom> &A, vector<Atom> &B, int count_atoms)
 {
    bool result = true;
 
-   vector<int> A2B(count_atoms);
-   result &= permutation(A, B, a_groups, b_groups, 0, A2B, count_atoms);
-
    return result;
-}
-
-void group_atom(vector<Atom> &A, vector<vector<int>> &a_groups, int count_atoms)
-{
-   vector<vector<int>> a_neighbour_groups(count_atoms,
-                                          vector<int>(count_atoms, 0));
-   // create groups by bouds size
-   for (int i = 0; i < count_atoms; ++i) {
-      for (auto a : A[i].target)
-         a_neighbour_groups[i][A[a].target.size()]++;
-   }
-   split2groups(A, a_groups, a_neighbour_groups, count_atoms);
-   for (vector<int> a_group : a_groups)
-      sort(a_group.begin(), a_group.end());
 }
 
 int main(int argc, char const *argv[])
@@ -165,8 +44,6 @@ int main(int argc, char const *argv[])
       }
    }
 
-   vector<vector<vector<int>>> molecule_groups(
-       count_molecules, vector<vector<int>>(count_atoms * 3));
    // Calcule token for each combination by targets count
    vector<long unsigned int> molecule_tokens(count_molecules, 0);
    for (int i = 0; i < count_molecules; ++i) {
@@ -182,8 +59,6 @@ int main(int argc, char const *argv[])
          else
             molecule_tokens[i] += 100000000;
       }
-      // Split to group for each molecule
-      group_atom(molecules[i], molecule_groups[i], count_atoms);
    }
 
    // Map ordered molecules
@@ -206,8 +81,7 @@ int main(int argc, char const *argv[])
 
          // Valid isomorfism
          if (molecule_tokens[i] == molecule_tokens[j] &&
-             is_isomorfism(molecules[i], molecules[j], molecule_groups[i],
-                           molecule_groups[j], count_atoms)) {
+             is_isomorfism(molecules[i], molecules[j], count_atoms)) {
             is_ordered[j] = true;
             // incereas last index
             group_counts.back() += 1;
