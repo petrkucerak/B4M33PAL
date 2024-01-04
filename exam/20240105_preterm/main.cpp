@@ -167,7 +167,8 @@ int main(int argc, char const *argv[])
       fprintf(stderr, "ERROR - can't load the metadata!\n");
       exit(EXIT_FAILURE);
    }
-   printf("M: %d, A: %d, B: %d\n", count_mulecules, count_atoms, count_bonds);
+   // printf("M: %d, A: %d, B: %d\n", count_mulecules, count_atoms,
+   // count_bonds);
 
    // Load the data
    vector<vector<Atom>> molecules(count_mulecules, vector<Atom>(count_atoms));
@@ -216,8 +217,12 @@ int main(int argc, char const *argv[])
         [](const int &a, const int &b) { return a > b ? false : true; });
 
    // Print results
-   for (auto group : group_counts)
-      cout << group << " ";
+   for (int i = 0; i < group_counts.size(); ++i) {
+      if (i == 0)
+         cout << group_counts[i];
+      else
+         cout << " " << group_counts[i];
+   }
    cout << endl;
 
    return 0;
