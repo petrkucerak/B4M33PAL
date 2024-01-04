@@ -1,20 +1,60 @@
 #include <algorithm>
 #include <iostream>
+#include <queue>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
 using namespace std;
 
+struct Coord {
+   int molecule;
+   int atom;
+};
+
 struct Atom {
-   unordered_set<int> target;
+   vector<int> target;
    // bool is_fast = false;
 };
 
-bool is_isomorfism(vector<Atom> &A, vector<Atom> &B, int count_atoms)
+bool is_isomorfism(vector<string> A, vector<string> B)
 {
-   bool result = true;
+   bool result = false;
+
+   // If find two same certificates, molecules are same
+   for (int i = 0; i < A.size(); ++i) {
+      for (int j = 0; j < B.size(); ++j) {
+         if (!A[i].compare(B[j]))
+            return true;
+      }
+   }
 
    return result;
+}
+
+string generate_certificate(vector<Atom> &molecule, vector<bool> &visited,
+                            int start_atom)
+{
+   string ret;
+   if (visited[start_atom] == true)
+      return "01";
+   visited[start_atom] = true;
+   for (auto &to : molecule[start_atom].target) {
+      if (!visited[to] && molecule[to].target.size() == 1) {
+         ret.append(generate_certificate(molecule, visited, to));
+      }
+   }
+   for (auto &to : molecule[start_atom].target) {
+      if (!visited[to] && molecule[to].target.size() == 2) {
+         ret.append(generate_certificate(molecule, visited, to));
+      }
+   }
+   for (auto &to : molecule[start_atom].target) {
+      if (!visited[to] && molecule[to].target.size() == 3) {
+         ret.append(generate_certificate(molecule, visited, to));
+      }
+   }
+   return "0" + ret + "1";
 }
 
 int main(int argc, char const *argv[])
@@ -39,26 +79,47 @@ int main(int argc, char const *argv[])
          }
          a -= 1;
          b -= 1;
-         molecule[a].target.insert(b);
-         molecule[b].target.insert(a);
+         molecule[a].target.push_back(b);
+         molecule[b].target.push_back(a);
       }
    }
 
+   queue<Coord> task_to_generate;
+
    // Calcule token for each combination by targets count
+   // This policy has not influence
    vector<long unsigned int> molecule_tokens(count_molecules, 0);
    for (int i = 0; i < count_molecules; ++i) {
-      for (auto &atom : molecules[i]) {
-         int size = atom.target.size();
+      for (int j = 0; j < molecules[i].size(); ++j) {
+         int size = molecules[i][j].target.size();
+         sort(molecules[i][j].target.begin(), molecules[i][j].target.end(),
+              [](const int &a, const int &b) { return a < b ? true : false; });
          // 1 - 1
          // 2 - 10000
          // 3 - 100000000
-         if (size == 1)
+         if (size == 1) {
             molecule_tokens[i] += 1;
-         else if (size == 2)
+            task_to_generate.push({i, j});
+         } else if (size == 2) {
+            task_to_generate.push({i, j});
             molecule_tokens[i] += 10000;
-         else
+         } else {
+            task_to_generate.push({i, j});
             molecule_tokens[i] += 100000000;
+         }
       }
+   }
+
+   vector<vector<string>> certifiactes(count_molecules);
+
+   while (!task_to_generate.empty()) {
+      Coord tmp = task_to_generate.front();
+      vector<bool> visited(count_atoms, false);
+      string certificate =
+          generate_certificate(molecules[tmp.molecule], visited, tmp.atom);
+      // cout << certificate << endl;
+      certifiactes[tmp.molecule].push_back(certificate);
+      task_to_generate.pop();
    }
 
    // Map ordered molecules
@@ -81,8 +142,9 @@ int main(int argc, char const *argv[])
 
          // Valid isomorfism
          if (molecule_tokens[i] == molecule_tokens[j] &&
-             is_isomorfism(molecules[i], molecules[j], count_atoms)) {
+             is_isomorfism(certifiactes[i], certifiactes[j])) {
             is_ordered[j] = true;
+
             // incereas last index
             group_counts.back() += 1;
          }
