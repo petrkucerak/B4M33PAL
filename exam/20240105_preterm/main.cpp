@@ -217,7 +217,7 @@ int main(int argc, char const *argv[])
         [](const int &a, const int &b) { return a > b ? false : true; });
 
    // Print results
-   for (int i = 0; i < group_counts.size(); ++i) {
+   for (long unsigned int i = 0; i < group_counts.size(); ++i) {
       if (i == 0)
          cout << group_counts[i];
       else
