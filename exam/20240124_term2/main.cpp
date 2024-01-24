@@ -1,5 +1,7 @@
 #include <iostream>
 #include <queue>
+#include <stack>
+#include <unordered_set>
 #include <vector>
 
 #define MOD 65536
@@ -30,34 +32,34 @@ struct CompareConnection {
    }
 };
 
-bool exist_larger_cyrcle(vector<vector<int>> &network, int start_node, int &D,
+bool dfs(vector<vector<int>> &network, int current, int D,
+         vector<bool> &visited, vector<int> &depth, int parents)
+{
+   for (auto &target : network[current]) {
+      if (target == parents)
+         continue;
+      if (visited[target]) {
+         cout << "CYCLE" << endl;
+         if (depth[target] + depth[current] > D)
+            return true;
+      }
+      depth[target] = depth[current] + 1;
+      visited[current] = true;
+      if (dfs(network, target, D, visited, depth, current))
+         return true;
+   }
+   return false;
+}
+
+bool exist_larger_cyrcle(vector<vector<int>> &network, int start_node, int D,
                          int &unit_counts)
 {
 
-   queue<CycleDetector> tasks;
    vector<bool> visited(unit_counts, false);
-   visited[start_node] = true;
-   for (int i = 0; i < network[start_node].size(); ++i) {
-      tasks.push({network[start_node][i], 1});
-   }
-   while (!tasks.empty()) {
-      CycleDetector target = tasks.front();
-      tasks.pop();
+   vector<int> depth(unit_counts, 0);
 
-      if (visited[target.t]) {
-         // if detected larger cycle -> return true
-         if (D < target.depth)
-            return true;
-         return false;
-      }
-
-      visited[target.t] = true;
-      for (int i = 0; i < network[target.t].size(); ++i) {
-         tasks.push({network[target.t][i], target.depth + 1});
-      }
-   }
-
-   return false;
+   // Perform DFS from the start_node
+   return dfs(network, start_node, D, visited, depth, -1);
 }
 
 void print_network(vector<QPU> &QPUs)
@@ -137,6 +139,8 @@ int main(int argc, char const *argv[])
       network[tmp->s].push_back(tmp->t);
    }
 
+   print_network(QPUs);
+
    // Create YELLOW network
    vector<bool> yellow_visited(unit_counts, false);
    int yellow_sum = 0;
@@ -157,6 +161,8 @@ int main(int argc, char const *argv[])
       // Try to add connection to network
       network[tmp->s].push_back(tmp->t);
       if (exist_larger_cyrcle(network, tmp->s, D, unit_counts)) {
+         cout << "MAX_CYCLE_DETECTED between QPU: [" << tmp->t << "," << tmp->s
+              << "]" << endl;
          network[tmp->s].pop_back();
          continue;
       }
