@@ -60,6 +60,18 @@ bool exist_larger_cyrcle(vector<vector<int>> &network, int start_node, int &D,
    return false;
 }
 
+void print_network(vector<QPU> &QPUs)
+{
+   for (int i = 0; i < QPUs.size(); ++i) {
+      printf("%d. ", i + 1);
+      for (int j = 0; j < QPUs[i].neighbour.size(); ++j) {
+         printf("[%d,%d,%d] ", QPUs[i].neighbour[j].t + 1,
+                QPUs[i].neighbour[j].value, QPUs[i].neighbour[j].is_used);
+      }
+      printf("\n");
+   }
+}
+
 int main(int argc, char const *argv[])
 {
    // load the metadata
@@ -114,6 +126,12 @@ int main(int argc, char const *argv[])
       red_added_units += 1;
       red_sum += tmp->value;
       tmp->is_used = true;
+      for (int i = 0; i < QPUs[tmp->t].neighbour.size(); ++i) {
+         if (QPUs[tmp->t].neighbour[i].t == tmp->s) {
+            QPUs[tmp->t].neighbour[i].is_used = true;
+            break;
+         }
+      }
 
       // Add connection to network
       network[tmp->s].push_back(tmp->t);
@@ -144,23 +162,27 @@ int main(int argc, char const *argv[])
       }
 
       // add QPU to network
-      yellow_visited[tmp->t] = true;
-      for (int i = 0; i < QPUs[tmp->t].neighbour.size(); ++i) {
-         neightbours.push(&QPUs[tmp->t].neighbour[i]);
-      }
       yellow_added_units += 1;
       yellow_sum += tmp->value;
+      yellow_visited[tmp->t] = true;
+
       tmp->is_used = true;
+      for (int i = 0; i < QPUs[tmp->t].neighbour.size(); ++i) {
+         if (QPUs[tmp->t].neighbour[i].t == tmp->s) {
+            QPUs[tmp->t].neighbour[i].is_used = true;
+            break;
+         }
+      }
+
+      for (int i = 0; i < QPUs[tmp->t].neighbour.size(); ++i) {
+         // if is used in red network, skip it
+         if (QPUs[tmp->t].neighbour[i].is_used)
+            continue;
+         neightbours.push(&QPUs[tmp->t].neighbour[i]);
+      }
    }
 
-   // // print data
-   // for (int i = 0; i < QPUs.size(); ++i) {
-   //    for (int j = 0; j < QPUs[i].neighbour.size(); ++j) {
-   //       printf("[%d,%d,%d] ", QPUs[i].neighbour[j].t,
-   //              QPUs[i].neighbour[j].value, QPUs[i].neighbour[j].is_used);
-   //    }
-   //    printf("\n");
-   // }
+   print_network(QPUs);
 
    cout << red_sum % MOD << " " << yellow_sum % MOD << endl;
 
