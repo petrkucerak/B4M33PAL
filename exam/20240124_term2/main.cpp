@@ -13,6 +13,11 @@ struct Connection {
    bool is_used;
 };
 
+struct CycleDetector {
+   int t; // taget
+   int depth;
+};
+
 struct QPU {
    vector<Connection> neighbour;
    int red_connection = 0;
@@ -24,6 +29,35 @@ struct CompareConnection {
       return c1->value > c2->value;
    }
 };
+
+bool exist_larger_cyrcle(vector<vector<int>> &network, int start_node, int &D,
+                         int &unit_counts)
+{
+
+   queue<CycleDetector> tasks;
+   vector<bool> visited(unit_counts, false);
+   visited[start_node] = true;
+   for (int i = 0; i < network[start_node].size(); ++i) {
+      tasks.push({network[start_node][i], 1});
+   }
+   while (!tasks.empty()) {
+      CycleDetector target = tasks.front();
+      tasks.pop();
+
+      if (visited[target.t]) {
+         if (D < target.depth)
+            return true;
+         return false;
+      }
+
+      visited[target.t] = true;
+      for (int i = 0; i < network[target.t].size(); ++i) {
+         tasks.push({network[target.t][i], target.depth + 1});
+      }
+   }
+
+   return false;
+}
 
 int main(int argc, char const *argv[])
 {
@@ -100,6 +134,13 @@ int main(int argc, char const *argv[])
       neightbours.pop();
       if (yellow_visited[tmp->t])
          continue;
+
+      // Try to add connection to network
+      network[tmp->s].push_back(tmp->t);
+      if (exist_larger_cyrcle(network, tmp->s, D, unit_counts)) {
+         network[tmp->s].pop_back();
+         continue;
+      }
 
       // add QPU to network
       yellow_visited[tmp->t] = true;
