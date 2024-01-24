@@ -7,7 +7,8 @@
 using namespace std;
 
 struct Connection {
-   int t;
+   int t; // target
+   int s; // source
    int value;
    bool is_used;
 };
@@ -33,7 +34,7 @@ int main(int argc, char const *argv[])
       fprintf(stderr, "ERROR - can't load metadata correctly!\n");
       exit(EXIT_FAILURE);
    }
-   printf("Metadata are: %d %d %d\n", unit_counts, connection_counts, D);
+   // printf("Metadata are: %d %d %d\n", unit_counts, connection_counts, D);
 
    // load the data
    vector<QPU> QPUs(unit_counts);
@@ -45,19 +46,19 @@ int main(int argc, char const *argv[])
       }
       q1--;
       q2--;
-      QPUs[q1].neighbour.push_back({q2, m, false});
-      QPUs[q2].neighbour.push_back({q1, m, false});
+      QPUs[q1].neighbour.push_back({q2, q1, m, false});
+      QPUs[q2].neighbour.push_back({q1, q2, m, false});
       // printf("%d %d %d\n", q1, q2, m);
    }
 
-   vector<vector<Connection>> red_network(unit_counts);
+   vector<vector<int>> network(unit_counts);
    vector<bool> red_visited(unit_counts, false);
    priority_queue<Connection *, vector<Connection *>, CompareConnection>
        neightbours;
 
+   // Create RED network
    int red_sum = 0;
    int red_added_units = 0;
-   // create red network
    red_visited[0] = true;
    for (int i = 0; i < QPUs[0].neighbour.size(); ++i) {
       neightbours.push(&QPUs[0].neighbour[i]);
@@ -78,14 +79,15 @@ int main(int argc, char const *argv[])
       red_added_units += 1;
       red_sum += tmp->value;
       tmp->is_used = true;
+
+      // Add connection to network
+      network[tmp->s].push_back(tmp->t);
    }
 
-   vector<vector<Connection>> yellow_network(unit_counts);
+   // Create YELLOW network
    vector<bool> yellow_visited(unit_counts, false);
-
    int yellow_sum = 0;
    int yellow_added_units = 0;
-   // create red network
    yellow_visited[0] = true;
    for (int i = 0; i < QPUs[0].neighbour.size(); ++i) {
       // if is used in red network, skip it
