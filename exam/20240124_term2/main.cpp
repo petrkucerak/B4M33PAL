@@ -2,6 +2,8 @@
 #include <queue>
 #include <vector>
 
+#define MOD 65536
+
 using namespace std;
 
 struct Connection {
@@ -84,7 +86,7 @@ int main(int argc, char const *argv[])
       red_sum += tmp.value;
    }
 
-   cout << red_sum << endl;
+   cout << red_sum % MOD << endl;
 
    return 0;
 }
