@@ -80,16 +80,45 @@ int main(int argc, char const *argv[])
       tmp->is_used = true;
    }
 
-   // print data
-   for (int i = 0; i < QPUs.size(); ++i) {
-      for (int j = 0; j < QPUs[i].neighbour.size(); ++j) {
-         printf("[%d,%d,%d] ", QPUs[i].neighbour[j].t,
-                QPUs[i].neighbour[j].value, QPUs[i].neighbour[j].is_used);
+   vector<vector<Connection>> yellow_network(unit_counts);
+   vector<bool> yellow_visited(unit_counts, false);
+
+   int yellow_sum = 0;
+   int yellow_added_units = 0;
+   // create red network
+   yellow_visited[0] = true;
+   for (int i = 0; i < QPUs[0].neighbour.size(); ++i) {
+      // if is used in red network, skip it
+      if (QPUs[0].neighbour[i].is_used)
+         continue;
+      neightbours.push(&QPUs[0].neighbour[i]);
+   }
+   while (!neightbours.empty() || yellow_added_units == unit_counts) {
+      Connection *tmp = neightbours.top();
+      neightbours.pop();
+      if (yellow_visited[tmp->t])
+         continue;
+
+      // add QPU to network
+      yellow_visited[tmp->t] = true;
+      for (int i = 0; i < QPUs[tmp->t].neighbour.size(); ++i) {
+         neightbours.push(&QPUs[tmp->t].neighbour[i]);
       }
-      printf("\n");
+      yellow_added_units += 1;
+      yellow_sum += tmp->value;
+      tmp->is_used = true;
    }
 
-   cout << red_sum % MOD << endl;
+   // // print data
+   // for (int i = 0; i < QPUs.size(); ++i) {
+   //    for (int j = 0; j < QPUs[i].neighbour.size(); ++j) {
+   //       printf("[%d,%d,%d] ", QPUs[i].neighbour[j].t,
+   //              QPUs[i].neighbour[j].value, QPUs[i].neighbour[j].is_used);
+   //    }
+   //    printf("\n");
+   // }
+
+   cout << red_sum % MOD << " " << yellow_sum % MOD << endl;
 
    return 0;
 }
