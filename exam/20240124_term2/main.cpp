@@ -9,7 +9,7 @@ using namespace std;
 struct Connection {
    int t;
    int value;
-   // bool is_used;
+   bool is_used;
 };
 
 struct QPU {
@@ -18,9 +18,9 @@ struct QPU {
 };
 
 struct CompareConnection {
-   bool operator()(Connection const &c1, Connection const &c2)
+   bool operator()(Connection *const &c1, Connection *const &c2)
    {
-      return c1.value > c2.value;
+      return c1->value > c2->value;
    }
 };
 
@@ -45,21 +45,14 @@ int main(int argc, char const *argv[])
       }
       q1--;
       q2--;
-      QPUs[q1].neighbour.push_back({q2, m});
-      QPUs[q2].neighbour.push_back({q1, m});
+      QPUs[q1].neighbour.push_back({q2, m, false});
+      QPUs[q2].neighbour.push_back({q1, m, false});
       // printf("%d %d %d\n", q1, q2, m);
    }
 
-   // // print data
-   // for (auto &QPU : QPUs) {
-   //    for (auto &connection : QPU)
-   //       printf("[%d,%d] ", connection.t, connection.value);
-   //    cout << endl;
-   // }
-
    vector<vector<Connection>> red_network(unit_counts);
    vector<bool> red_visited(unit_counts, false);
-   priority_queue<Connection, vector<Connection>, CompareConnection>
+   priority_queue<Connection *, vector<Connection *>, CompareConnection>
        neightbours;
 
    int red_sum = 0;
@@ -67,23 +60,33 @@ int main(int argc, char const *argv[])
    // create red network
    red_visited[0] = true;
    for (int i = 0; i < QPUs[0].neighbour.size(); ++i) {
-      neightbours.push(QPUs[0].neighbour[i]);
+      neightbours.push(&QPUs[0].neighbour[i]);
    }
    while (!neightbours.empty() || red_added_units == unit_counts) {
-      Connection tmp = neightbours.top();
+      Connection *tmp = neightbours.top();
       neightbours.pop();
-      if (red_visited[tmp.t])
+      if (red_visited[tmp->t])
          continue;
-      if (QPUs[tmp.t].red_connection == 3) // relevancy of this condition?
+      if (QPUs[tmp->t].red_connection == 3) // relevancy of this condition?
          continue;
 
       // add QPU to network
-      red_visited[tmp.t] = true;
-      for (int i = 0; i < QPUs[tmp.t].neighbour.size(); ++i) {
-         neightbours.push(QPUs[tmp.t].neighbour[i]);
+      red_visited[tmp->t] = true;
+      for (int i = 0; i < QPUs[tmp->t].neighbour.size(); ++i) {
+         neightbours.push(&QPUs[tmp->t].neighbour[i]);
       }
       red_added_units += 1;
-      red_sum += tmp.value;
+      red_sum += tmp->value;
+      tmp->is_used = true;
+   }
+
+   // print data
+   for (int i = 0; i < QPUs.size(); ++i) {
+      for (int j = 0; j < QPUs[i].neighbour.size(); ++j) {
+         printf("[%d,%d,%d] ", QPUs[i].neighbour[j].t,
+                QPUs[i].neighbour[j].value, QPUs[i].neighbour[j].is_used);
+      }
+      printf("\n");
    }
 
    cout << red_sum % MOD << endl;
