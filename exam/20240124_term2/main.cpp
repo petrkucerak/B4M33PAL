@@ -45,6 +45,7 @@ bool exist_larger_cyrcle(vector<vector<int>> &network, int start_node, int &D,
       tasks.pop();
 
       if (visited[target.t]) {
+         // if detected larger cycle -> return true
          if (D < target.depth)
             return true;
          return false;
