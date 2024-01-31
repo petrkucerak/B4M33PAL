@@ -28,11 +28,24 @@ long multiplicative_inverse(long a, long modulus)
    return old_s < 0 ? old_s + modulus : old_s;
 }
 
+long modulo_multiplication(long A, long x, long m)
+{
+   long res = 0;
+   while (A != 0) {
+      if (A & 1)
+         res = (res + x) % m;
+      A >>= 1;
+      x = (x << 1) % m;
+   }
+   return res;
+}
+
 void is_valid(vector<long> &sequnece, long A, long C, long M)
 {
    for (int i = 0; i < sequnece.size() - 1; ++i) {
 
-      if ((A * sequnece[i] + C) % M != sequnece[i + 1])
+      // if ((A * sequnece[i] + C) % M != sequnece[i + 1])
+      if ((modulo_multiplication(A, sequnece[i], M) + C) % M != sequnece[i + 1])
          return;
    }
    printf("%ld %ld %ld\n", A, C, M);
@@ -51,9 +64,7 @@ void a_combination(long &m_max, long p, vector<long> &sequnece)
    long t_A = p;
    for (int i = 1; (t_A * i) < M; ++i) {
       long A = (t_A * i) + 1;
-      if (M == 6342877509049)
-         cout << A << " " << sequnece[0] << endl;
-      long c = sequnece[1] - sequnece[0] * A;
+      long c = sequnece[1] - modulo_multiplication(A, sequnece[0], M) % M;
       while (c < 0)
          c += M;
       is_valid(sequnece, A, c, M);
@@ -113,6 +124,8 @@ int main(int argc, char const *argv[])
          break;
       }
    }
+
+   // cout << modulo_multiplication(234234124, 213413421, 53114) << endl;
 
    for (int start = 0; start < prime_numbers_count; ++start) {
       if (prime_numbers[start] * prime_numbers[start] > m_max)
