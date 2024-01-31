@@ -5,12 +5,14 @@ using namespace std;
 
 int main(int argc, char const *argv[])
 {
+
+   // LOAD THE DATA
    int p_max, m_max, n;
    if (scanf("%d %d %d\n", &p_max, &m_max, &n) != 3) {
       fprintf(stderr, "ERROR - can't load the metadata!\n");
       exit(EXIT_FAILURE);
    }
-   printf("Metadata: %d %d %d\n", p_max, m_max, n);
+
    vector<long> sequence(n);
    for (auto &x : sequence) {
       if (scanf("%ld", &x) != 1) {
@@ -18,8 +20,5 @@ int main(int argc, char const *argv[])
          exit(EXIT_FAILURE);
       }
    }
-   for (auto &x : sequence)
-      cout << x << " ";
-   cout << endl;
    return 0;
 }
