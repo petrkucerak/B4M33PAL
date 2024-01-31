@@ -45,18 +45,17 @@ void is_valid(vector<long> &sequnece, long A, long C, long M)
  * A > min_p
  * A = (prime_number[0] * primer_number[1] * ... * prime_number[F])
  */
-void a_combination(int &m_max, long p, vector<long> &sequnece)
+void a_combination(long &m_max, long p, vector<long> &sequnece)
 {
    long M = p * p;
    long t_A = p;
    for (int i = 1; (t_A * i) < M; ++i) {
       long A = (t_A * i) + 1;
+      if (M == 6342877509049)
+         cout << A << " " << sequnece[0] << endl;
       long c = sequnece[1] - sequnece[0] * A;
       while (c < 0)
          c += M;
-      
-      // if (t_A * i + 1 == 70)
-      //    printf("%d %d %d\n", t_A * i + 1, c, M);
       is_valid(sequnece, A, c, M);
    }
 }
@@ -68,7 +67,7 @@ void a_combination(int &m_max, long p, vector<long> &sequnece)
  * M = (prime_numbers[0] * prime_numbers[1] * ... * prime_numbers[F])^2,
  * where prime_numbers[F]^2 < m_max
  */
-void m_combination(int start, long p, int &m_max, long &m_min,
+void m_combination(int start, long p, long &m_max, long &m_min,
                    vector<long> &sequnece)
 {
    // call next combination
@@ -88,8 +87,8 @@ int main(int argc, char const *argv[])
 {
 
    // LOAD THE DATA
-   int p_max, m_max, n;
-   if (scanf("%d %d %d\n", &p_max, &m_max, &n) != 3) {
+   long p_max, m_max, n;
+   if (scanf("%ld %ld %ld\n", &p_max, &m_max, &n) != 3) {
       fprintf(stderr, "ERROR - can't load the metadata!\n");
       exit(EXIT_FAILURE);
    }
