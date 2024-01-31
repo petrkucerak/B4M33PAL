@@ -50,11 +50,14 @@ void a_combination(int &m_max, long p, vector<long> &sequnece)
    long M = p * p;
    long t_A = p;
    for (int i = 1; (t_A * i) < M; ++i) {
-      for (long c = 1; c < M; ++c) {
-         // if (t_A * i + 1 == 70)
-         //    printf("%d %d %d\n", t_A * i + 1, c, M);
-         is_valid(sequnece, (t_A * i) + 1, c, M);
-      }
+      long A = (t_A * i) + 1;
+      long c = sequnece[1] - sequnece[0] * A;
+      while (c < 0)
+         c += M;
+      
+      // if (t_A * i + 1 == 70)
+      //    printf("%d %d %d\n", t_A * i + 1, c, M);
+      is_valid(sequnece, A, c, M);
    }
 }
 
