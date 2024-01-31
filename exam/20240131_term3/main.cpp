@@ -41,10 +41,10 @@ void is_valid(vector<long> &sequnece, long A, long C, long M)
 void a_combination(int &m_max, long p, vector<long> &sequnece)
 {
    long M = p * p;
-   long A = p + 1;
-   for (; A < M; ++A) {
+   long t_A = p;
+   for (int i = 1; (t_A * i) < M; ++i) {
       for (long c = 1; c < M; ++c) {
-         is_valid(sequnece, A, c, M);
+         is_valid(sequnece, (t_A * i) + 1, c, M);
       }
    }
 }
