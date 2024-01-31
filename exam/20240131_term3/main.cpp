@@ -35,13 +35,14 @@ void is_valid(vector<long> &sequnece, long A, long C, long M)
          return;
    }
    printf("%ld %ld %ld\n", A, C, M);
+   exit(EXIT_SUCCESS);
 }
 
 void a_combination(int &m_max, long p, vector<long> &sequnece)
 {
    long M = p * p;
    long A = p + 1;
-   for (A; A < M; ++A) {
+   for (; A < M; ++A) {
       for (long c = 1; c < M; ++c) {
          is_valid(sequnece, A, c, M);
       }
@@ -53,7 +54,7 @@ void m_combination(int start, long p, int &m_max, vector<long> &sequnece)
    // call next combination
    a_combination(m_max, p, sequnece);
    start += 1;
-   for (start; start < prime_numbers_count; ++start) {
+   for (; start < prime_numbers_count; ++start) {
       p *= prime_numbers[start];
       if (p * p > m_max)
          break;
